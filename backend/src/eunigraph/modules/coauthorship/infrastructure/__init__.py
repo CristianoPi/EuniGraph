@@ -1,0 +1,1 @@
+"""Coauthorship infrastructure adapters."""

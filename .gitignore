@@ -1,0 +1,35 @@
+# macOS
+.DS_Store
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+
+# Environment files
+.env
+
+# IDEs
+.idea/
+.vscode/
+
+# Node
+node_modules/
+
+# Alembic / local databases
+*.sqlite3
+
+# Build outputs
+dist/
+build/
+*.egg-info/

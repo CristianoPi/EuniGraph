@@ -1,0 +1,1 @@
+"""Coauthorship domain model."""

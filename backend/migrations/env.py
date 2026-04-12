@@ -7,6 +7,7 @@ from sqlalchemy import engine_from_config, pool
 
 from eunigraph.core.config import get_settings
 from eunigraph.persistence.postgres.base import Base
+from eunigraph.persistence.postgres import models  # noqa: F401
 
 config = context.config
 

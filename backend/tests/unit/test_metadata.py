@@ -17,6 +17,8 @@ def test_metadata_contains_initial_tables() -> None:
         "publication_organization",
         "external_identifier",
         "publication_embedding",
+        "normalization_run",
+        "normalization_finding",
     }
 
     assert expected_tables.issubset(set(Base.metadata.tables))

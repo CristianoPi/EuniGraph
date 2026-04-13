@@ -88,6 +88,9 @@ Development seed/admin endpoints:
 - `GET /api/v1/admin/seeds/openaire-beginners-kit/status`
 - `POST /api/v1/admin/seeds/openaire-beginners-kit/load`
 - `POST /api/v1/admin/seeds/openaire-beginners-kit/reset`
+- `POST /api/v1/admin/normalization/run`
+- `GET /api/v1/admin/normalization/status`
+- `GET /api/v1/admin/normalization/findings`
 
 ## Manual Canonical Entity Management
 

@@ -8,7 +8,10 @@ from sqlalchemy.orm import Session
 
 from eunigraph.api.deps import get_db_session
 from eunigraph.api.schemas.source_records import SourceRecordResponse
-from eunigraph.modules.ingestion.infrastructure.models import SourceRecordModel
+from eunigraph.modules.ingestion.infrastructure.models import (
+    DataSourceModel,
+    SourceRecordModel,
+)
 
 router = APIRouter(prefix="/source-records", tags=["source-records"])
 DB_SESSION = Depends(get_db_session)
@@ -24,6 +27,8 @@ def _source_record_response(record: object) -> SourceRecordResponse:
 def get_source_records(
     entity_type: str | None = None,
     source_identifier: str | None = None,
+    source_type: str | None = None,
+    canonical_entity_id: UUID | None = None,
     data_source_id: UUID | None = None,
     ingestion_run_id: UUID | None = None,
     limit: int = LIMIT_QUERY,
@@ -35,6 +40,16 @@ def get_source_records(
         query = query.where(SourceRecordModel.entity_type == entity_type)
     if source_identifier:
         query = query.where(SourceRecordModel.source_identifier == source_identifier)
+    if source_type:
+        query = query.join(
+            DataSourceModel,
+            SourceRecordModel.data_source_id == DataSourceModel.id,
+        ).where(DataSourceModel.source_type == source_type)
+    if canonical_entity_id:
+        query = query.where(
+            SourceRecordModel.raw_payload["canonical_entity_id"].astext
+            == str(canonical_entity_id),
+        )
     if data_source_id:
         query = query.where(SourceRecordModel.data_source_id == data_source_id)
     if ingestion_run_id:

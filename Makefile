@@ -1,6 +1,6 @@
 PROJECT_NAME := EuniGraph
 
-.PHONY: help bootstrap up down logs backend-install backend-run backend-test backend-lint backend-format backend-typecheck
+.PHONY: help bootstrap up down logs backend-install backend-run backend-test backend-lint backend-format backend-typecheck backend-seed-openaire backend-reset-openaire-seed backend-seed-status
 
 help:
 	@echo "Available targets:"
@@ -14,6 +14,9 @@ help:
 	@echo "  backend-lint      Run Ruff checks"
 	@echo "  backend-format    Run Ruff formatter"
 	@echo "  backend-typecheck Run mypy"
+	@echo "  backend-seed-openaire Load the OpenAIRE Beginner's Kit seed"
+	@echo "  backend-reset-openaire-seed Reset development seed data"
+	@echo "  backend-seed-status Show OpenAIRE seed status"
 
 bootstrap:
 	./scripts/bootstrap.sh
@@ -44,3 +47,12 @@ backend-format:
 
 backend-typecheck:
 	cd backend && uv run mypy src
+
+backend-seed-openaire:
+	cd backend && uv run python -m eunigraph.modules.ingestion.application.seed_cli load
+
+backend-reset-openaire-seed:
+	cd backend && uv run python -m eunigraph.modules.ingestion.application.seed_cli reset
+
+backend-seed-status:
+	cd backend && uv run python -m eunigraph.modules.ingestion.application.seed_cli status

@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
+from typing import Any
 
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -17,12 +19,23 @@ class Settings(BaseSettings):
         alias="EUNIGRAPH_DATABASE_URL",
     )
     qdrant_url: str = Field(default="http://localhost:6333", alias="EUNIGRAPH_QDRANT_URL")
+    openaire_beginners_kit_path: Path = Field(
+        default=Path("./data/openaire/beginners_kit"),
+        alias="OPENAIRE_BEGINNERS_KIT_PATH",
+    )
 
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    def model_post_init(self, __context: Any) -> None:
+        repo_root = Path(__file__).resolve().parents[4]
+        if not self.openaire_beginners_kit_path.is_absolute():
+            self.openaire_beginners_kit_path = (
+                repo_root / self.openaire_beginners_kit_path
+            ).resolve()
 
 
 @lru_cache(maxsize=1)

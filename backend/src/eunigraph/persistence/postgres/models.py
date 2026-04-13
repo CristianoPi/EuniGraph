@@ -15,11 +15,17 @@ from eunigraph.modules.ingestion.infrastructure.models import (
     IngestionRunModel,
     SourceRecordModel,
 )
+from eunigraph.modules.normalization.infrastructure.models import (
+    NormalizationFindingModel,
+    NormalizationRunModel,
+)
 
 __all__ = [
     "DataSourceModel",
     "ExternalIdentifierModel",
     "IngestionRunModel",
+    "NormalizationFindingModel",
+    "NormalizationRunModel",
     "OrganizationModel",
     "PublicationAuthorModel",
     "PublicationEmbeddingModel",

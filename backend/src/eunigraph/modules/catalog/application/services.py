@@ -17,6 +17,7 @@ from eunigraph.modules.catalog.infrastructure.models import (
     ResearcherAffiliationModel,
     ResearcherModel,
 )
+from eunigraph.modules.ingestion.application import create_manual_source_record
 from eunigraph.shared.utils import normalize_text
 
 
@@ -180,6 +181,30 @@ def create_publication(
         source_url=source_url,
     )
     session.add(publication)
+    session.flush()
+    source_record = create_manual_source_record(
+        session,
+        entity_type="publication",
+        source_identifier=f"manual::publication::{publication.id}::create",
+        action="create",
+        payload={
+            "title": title,
+            "abstract": abstract,
+            "publication_year": publication_year,
+            "publication_date": publication_date.isoformat() if publication_date else None,
+            "doi": doi,
+            "openaire_id": openaire_id,
+            "publication_type": publication_type,
+            "language_code": language_code,
+            "journal_name": journal_name,
+            "venue_name": venue_name,
+            "publisher": publisher,
+            "open_access": open_access,
+            "source_url": source_url,
+        },
+        canonical_entity_id=publication.id,
+    )
+    publication.canonical_source_record_id = source_record.id
     _commit_or_400(session, "Invalid publication payload or conflicting publication data")
     session.refresh(publication)
     return publication
@@ -197,6 +222,18 @@ def update_publication(
     if changes.get("title") is not None:
         publication.normalized_title = normalize_text(publication.title)
 
+    source_record = create_manual_source_record(
+        session,
+        entity_type="publication",
+        source_identifier=f"manual::publication::{publication.id}::update",
+        action="update",
+        payload={
+            key: value.isoformat() if isinstance(value, date) else value
+            for key, value in changes.items()
+        },
+        canonical_entity_id=publication.id,
+    )
+    publication.canonical_source_record_id = source_record.id
     _commit_or_400(session, "Invalid publication update or conflicting publication data")
     session.refresh(publication)
     return publication
@@ -229,6 +266,26 @@ def create_researcher(
         primary_organization_id=primary_organization_id,
     )
     session.add(researcher)
+    session.flush()
+    create_manual_source_record(
+        session,
+        entity_type="researcher",
+        source_identifier=f"manual::researcher::{researcher.id}::create",
+        action="create",
+        payload={
+            "full_name": full_name,
+            "given_name": given_name,
+            "family_name": family_name,
+            "display_name": display_name,
+            "orcid": orcid,
+            "email": email,
+            "profile_url": profile_url,
+            "primary_organization_id": (
+                str(primary_organization_id) if primary_organization_id else None
+            ),
+        },
+        canonical_entity_id=researcher.id,
+    )
     _commit_or_400(session, "Invalid researcher payload or conflicting researcher data")
     session.refresh(researcher)
     return researcher
@@ -249,6 +306,23 @@ def update_researcher(
     if changes.get("full_name") is not None:
         researcher.normalized_name = normalize_text(researcher.full_name)
 
+    create_manual_source_record(
+        session,
+        entity_type="researcher",
+        source_identifier=f"manual::researcher::{researcher.id}::update",
+        action="update",
+        payload={
+            key: (
+                value.isoformat()
+                if isinstance(value, date)
+                else str(value)
+                if isinstance(value, UUID)
+                else value
+            )
+            for key, value in changes.items()
+        },
+        canonical_entity_id=researcher.id,
+    )
     _commit_or_400(session, "Invalid researcher update or conflicting researcher data")
     session.refresh(researcher)
     return researcher
@@ -281,6 +355,26 @@ def create_organization(
         openaire_id=openaire_id,
     )
     session.add(organization)
+    session.flush()
+    create_manual_source_record(
+        session,
+        entity_type="organization",
+        source_identifier=f"manual::organization::{organization.id}::create",
+        action="create",
+        payload={
+            "name": name,
+            "organization_type": organization_type,
+            "country_code": country_code,
+            "city": city,
+            "website": website,
+            "parent_organization_id": (
+                str(parent_organization_id) if parent_organization_id else None
+            ),
+            "ror_id": ror_id,
+            "openaire_id": openaire_id,
+        },
+        canonical_entity_id=organization.id,
+    )
     _commit_or_400(session, "Invalid organization payload or conflicting organization data")
     session.refresh(organization)
     return organization
@@ -301,6 +395,23 @@ def update_organization(
     if changes.get("name") is not None:
         organization.normalized_name = normalize_text(organization.name)
 
+    create_manual_source_record(
+        session,
+        entity_type="organization",
+        source_identifier=f"manual::organization::{organization.id}::update",
+        action="update",
+        payload={
+            key: (
+                value.isoformat()
+                if isinstance(value, date)
+                else str(value)
+                if isinstance(value, UUID)
+                else value
+            )
+            for key, value in changes.items()
+        },
+        canonical_entity_id=organization.id,
+    )
     _commit_or_400(session, "Invalid organization update or conflicting organization data")
     session.refresh(organization)
     return organization
@@ -339,6 +450,22 @@ def add_publication_author(
         is_corresponding=is_corresponding,
     )
     session.add(relation)
+    session.flush()
+    source_record = create_manual_source_record(
+        session,
+        entity_type="publication_author",
+        source_identifier=f"manual::publication_author::{relation.id}::create",
+        action="create",
+        payload={
+            "publication_id": str(publication_id),
+            "researcher_id": str(researcher_id),
+            "author_position": author_position,
+            "author_list_name": author_list_name,
+            "is_corresponding": is_corresponding,
+        },
+        canonical_entity_id=relation.id,
+    )
+    relation.source_record_id = source_record.id
     _commit_or_400(
         session,
         "Invalid publication author payload or conflicting publication author data",
@@ -385,6 +512,23 @@ def add_researcher_affiliation(
         is_primary=is_primary,
     )
     session.add(affiliation)
+    session.flush()
+    source_record = create_manual_source_record(
+        session,
+        entity_type="researcher_affiliation",
+        source_identifier=f"manual::researcher_affiliation::{affiliation.id}::create",
+        action="create",
+        payload={
+            "researcher_id": str(researcher_id),
+            "organization_id": str(organization_id),
+            "role_title": role_title,
+            "start_date": start_date.isoformat() if start_date else None,
+            "end_date": end_date.isoformat() if end_date else None,
+            "is_primary": is_primary,
+        },
+        canonical_entity_id=affiliation.id,
+    )
+    affiliation.source_record_id = source_record.id
     _commit_or_400(
         session,
         "Invalid researcher affiliation payload or conflicting affiliation data",
@@ -422,6 +566,20 @@ def add_publication_organization(
         relation_type=relation_type,
     )
     session.add(relation)
+    session.flush()
+    source_record = create_manual_source_record(
+        session,
+        entity_type="publication_organization",
+        source_identifier=f"manual::publication_organization::{relation.id}::create",
+        action="create",
+        payload={
+            "publication_id": str(publication_id),
+            "organization_id": str(organization_id),
+            "relation_type": relation_type,
+        },
+        canonical_entity_id=relation.id,
+    )
+    relation.source_record_id = source_record.id
     _commit_or_400(
         session,
         "Invalid publication organization payload or conflicting relation data",

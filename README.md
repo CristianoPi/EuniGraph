@@ -62,6 +62,23 @@ The same functionality is also available through development admin endpoints:
 
 For fast local checks, the seed loader supports `limit_per_file` so you can import only a subset of each archive.
 
+## Manual Entity Management APIs
+
+The backend also exposes manual entity management APIs for canonical data:
+- publications
+- researchers
+- organizations
+- publication authors
+- researcher affiliations
+- publication organizations
+
+These endpoints are intended for demo data entry, corrections, and controlled enrichment of the canonical dataset.
+
+Manual writes are tracked through the provenance layer with a dedicated logical source:
+- `manual_api_entry`
+
+See [docs/seed-and-api.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/seed-and-api.md) for the current API surface and provenance behavior.
+
 ## Architecture Direction
 
 - Start simple: one deployable unit, clean module boundaries

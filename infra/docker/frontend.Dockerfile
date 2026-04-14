@@ -2,4 +2,8 @@ FROM node:22-alpine
 
 WORKDIR /app/frontend
 
-CMD ["sh", "-c", "echo 'Frontend workspace placeholder for Issue 1'; sleep infinity"]
+COPY frontend/package*.json ./
+
+RUN npm install
+
+CMD ["npm", "run", "dev", "--", "--hostname", "0.0.0.0", "--port", "3000"]

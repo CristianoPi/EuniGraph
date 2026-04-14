@@ -18,6 +18,8 @@ venv/
 
 # Environment files
 .env
+.env.local
+frontend/.env.local
 
 # IDEs
 .idea/
@@ -25,6 +27,10 @@ venv/
 
 # Node
 node_modules/
+.next/
+frontend/.next/
+frontend/out/
+frontend/tsconfig.tsbuildinfo
 
 # Alembic / local databases
 *.sqlite3

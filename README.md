@@ -14,7 +14,7 @@ The repository is intentionally structured as a modular monolith from day one:
 ```text
 .
 |-- backend/            # Python application, tests, migrations
-|-- frontend/           # Frontend workspace placeholder for future UI work
+|-- frontend/           # Next.js frontend shell and shared UI foundation
 |-- docs/               # Architecture, ADRs, diagrams
 |-- infra/              # Dockerfiles and infrastructure-oriented assets
 |-- scripts/            # Bootstrap and helper scripts
@@ -32,6 +32,10 @@ The repository is intentionally structured as a modular monolith from day one:
    `docker compose up --build`
 3. Open the backend API docs:
    [http://localhost:8000/docs](http://localhost:8000/docs)
+
+To start the frontend as well:
+- `docker compose --profile ui up --build`
+- frontend shell: [http://localhost:3000](http://localhost:3000)
 
 ## OpenAIRE Beginner's Kit Seed
 
@@ -147,6 +151,7 @@ Main endpoints:
 
 See [docs/architecture.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/architecture.md) for the initial architecture baseline.
 See [docs/backend-overview.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/backend-overview.md) for the backend structure, API families and Swagger/OpenAPI entry points.
+See [docs/frontend-overview.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-overview.md) for the frontend shell, route structure and backend integration pattern.
 See [docs/seed-and-api.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/seed-and-api.md) for the current seed and API development notes.
 See [docs/normalization.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/normalization.md) for the current normalization and deduplication rules.
 See [docs/coauthorship.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/coauthorship.md) for the materialized coauthorship graph pipeline.

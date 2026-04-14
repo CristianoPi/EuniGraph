@@ -51,13 +51,18 @@ services:
       context: .
       dockerfile: infra/docker/frontend.Dockerfile
     container_name: eunigraph-frontend
+    environment:
+      EUNIGRAPH_BACKEND_URL: ${FRONTEND_BACKEND_URL:-http://backend:8000}
+      NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-/api/backend}
     ports:
       - "${FRONTEND_PORT:-3000}:3000"
     volumes:
       - ./frontend:/app/frontend
+      - frontend_node_modules:/app/frontend/node_modules
     depends_on:
       - backend
 
 volumes:
+  frontend_node_modules:
   postgres_data:
   qdrant_data:

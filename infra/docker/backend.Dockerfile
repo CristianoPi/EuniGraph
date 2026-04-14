@@ -23,7 +23,7 @@ WORKDIR /app
 
 COPY backend /app/backend
 
-RUN python3 -m venv /opt/venv
+RUN python3 -m venv --system-site-packages /opt/venv
 RUN uv pip install --python /opt/venv/bin/python -e /app/backend
 
 WORKDIR /app/backend

@@ -66,7 +66,7 @@ export function PublicationsBrowser() {
     <div className="space-y-5">
       <Panel
         title="Publication browsing"
-        description="Use the canonical backend filters already exposed by FastAPI to search publications by title, DOI, year or OpenAIRE id."
+        description="Use the existing publication filters to search by title, DOI, year or OpenAIRE id."
       >
         <form onSubmit={handleSubmit} className="grid gap-4 xl:grid-cols-4">
           <input

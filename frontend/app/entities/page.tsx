@@ -31,7 +31,7 @@ export default function EntitiesPage() {
       <PageHeader
         eyebrow="Entities"
         title="The canonical catalog now has dedicated browsing routes."
-        description="This section is the non-graph entry point into EuniGraph: publications, researchers and organizations can now be searched, filtered and opened in detail views."
+        description="Browse publications, researchers and organizations through dedicated list and detail views."
       />
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
@@ -60,7 +60,7 @@ export default function EntitiesPage() {
           <div className="grid gap-3">
             {[
               "List and detail views for the three canonical entity families",
-              "Filters that correspond directly to existing FastAPI query parameters",
+              "Filters that correspond directly to the existing backend query parameters",
               "Route-linked drill-down between entities without duplicating backend rules",
             ].map((item) => (
               <div

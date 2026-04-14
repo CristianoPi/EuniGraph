@@ -10,6 +10,7 @@ It provides:
 - the first navigable route structure
 - dashboard and cross-entity quick search
 - browsing and detail routes for publications, researchers and organizations
+- a unified interactive explorer for coauthorship and semantic graphs
 - a proxy-based integration layer toward the FastAPI backend
 - reusable loading, error and empty states
 
@@ -42,3 +43,4 @@ In Docker the frontend proxy targets:
 - `src/lib/`: config, API client and small frontend utilities
 
 See [docs/frontend-overview.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-overview.md) for the technical overview.
+See [docs/frontend-graph-explorer.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-graph-explorer.md) for the graph explorer behavior and API integration details.

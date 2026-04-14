@@ -16,4 +16,11 @@ export const queryKeys = {
   organization: (id: string) => ["organization", id] as const,
   dashboardCounts: ["dashboard-counts"] as const,
   quickSearch: (query: string) => ["quick-search", query] as const,
+  coauthorshipGraph: (filters: Record<string, unknown>) =>
+    ["coauthorship-graph", filters] as const,
+  semanticGraph: (filters: Record<string, unknown>) => ["semantic-graph", filters] as const,
+  coauthorshipMetrics: ["coauthorship-metrics"] as const,
+  semanticMetrics: ["semantic-metrics"] as const,
+  coauthorshipNode: (id: string) => ["coauthorship-node", id] as const,
+  semanticNode: (id: string) => ["semantic-node", id] as const,
 } as const;

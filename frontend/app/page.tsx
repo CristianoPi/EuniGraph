@@ -38,7 +38,7 @@ export default function HomePage() {
       <PageHeader
         eyebrow="Overview"
         title="A frontend shell that now opens into real dashboard and catalog browsing flows."
-        description="The prototype no longer stops at placeholders: dashboard, quick search and entity drill-down are available on top of the existing FastAPI backend."
+        description="Use the overview as the entry point into dashboard, catalog browsing and graph exploration."
       />
 
       <SystemOverview />
@@ -63,7 +63,7 @@ export default function HomePage() {
         </Panel>
         <Panel
           title="What remains intentionally out of scope"
-          description="This iteration focuses on discovery and consultation. Richer visual analysis comes later."
+          description="Some areas stay intentionally lightweight so the core exploration flows remain readable."
         >
           <div className="grid gap-3">
             {[

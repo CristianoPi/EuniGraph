@@ -152,6 +152,7 @@ Main endpoints:
 See [docs/architecture.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/architecture.md) for the initial architecture baseline.
 See [docs/backend-overview.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/backend-overview.md) for the backend structure, API families and Swagger/OpenAPI entry points.
 See [docs/frontend-overview.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-overview.md) for the frontend shell, route structure and backend integration pattern.
+See [docs/frontend-graph-explorer.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-graph-explorer.md) for the unified coauthorship and semantic graph explorer.
 See [docs/seed-and-api.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/seed-and-api.md) for the current seed and API development notes.
 See [docs/normalization.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/normalization.md) for the current normalization and deduplication rules.
 See [docs/coauthorship.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/coauthorship.md) for the materialized coauthorship graph pipeline.

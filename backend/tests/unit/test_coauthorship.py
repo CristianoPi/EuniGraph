@@ -16,6 +16,7 @@ from eunigraph.modules.catalog.infrastructure.models import (
     ResearcherModel,
 )
 from eunigraph.modules.coauthorship.application import CoauthorshipGraphService
+from eunigraph.persistence.postgres import models  # noqa: F401
 
 
 class FakeSession:
@@ -126,8 +127,10 @@ def test_collect_graph_inputs_builds_weighted_edges_and_optional_isolated_nodes(
     assert edges[(str(researcher_a.id), str(researcher_b.id))]["weight"] == 2
     assert edges[(str(researcher_a.id), str(researcher_b.id))]["first_collaboration_year"] == 2020
     assert edges[(str(researcher_a.id), str(researcher_b.id))]["last_collaboration_year"] == 2022
-    ac_key = tuple(sorted((str(researcher_a.id), str(researcher_c.id))))
-    bc_key = tuple(sorted((str(researcher_b.id), str(researcher_c.id))))
+    ac_sorted = sorted((str(researcher_a.id), str(researcher_c.id)))
+    bc_sorted = sorted((str(researcher_b.id), str(researcher_c.id)))
+    ac_key = (ac_sorted[0], ac_sorted[1])
+    bc_key = (bc_sorted[0], bc_sorted[1])
     assert edges[ac_key]["weight"] == 1
     assert edges[bc_key]["weight"] == 1
 
@@ -251,3 +254,53 @@ def test_render_svg_outputs_placeholder_for_empty_graph() -> None:
 
     assert "No coauthorship graph has been materialized yet" in svg
     assert svg.startswith("<svg")
+
+
+def test_render_svg_for_graph_uses_scatter_layout_without_labels() -> None:
+    service = CoauthorshipGraphService(cast(Session, FakeSession([])), _settings())
+
+    svg = service._render_svg(
+        [
+            {
+                "id": "researcher-a",
+                "label": "Ada Lovelace",
+                "full_name": "Ada Lovelace",
+                "normalized_name": "ada lovelace",
+                "primary_organization_id": None,
+                "primary_organization_name": None,
+                "degree": 2,
+                "strength": 3,
+                "betweenness": 0.4,
+                "component_id": 0,
+                "community_id": 0,
+            },
+            {
+                "id": "researcher-b",
+                "label": "Grace Hopper",
+                "full_name": "Grace Hopper",
+                "normalized_name": "grace hopper",
+                "primary_organization_id": None,
+                "primary_organization_name": None,
+                "degree": 1,
+                "strength": 1,
+                "betweenness": 0.0,
+                "component_id": 0,
+                "community_id": 0,
+            },
+        ],
+        [
+            {
+                "source": "researcher-a",
+                "target": "researcher-b",
+                "weight": 1,
+                "shared_publication_count": 1,
+                "first_collaboration_year": 2024,
+                "last_collaboration_year": 2024,
+                "shared_publication_ids": ["publication-1"],
+            },
+        ],
+    )
+
+    assert "<text" not in svg
+    assert 'r="2.70"' in svg
+    assert 'r="2.10"' in svg

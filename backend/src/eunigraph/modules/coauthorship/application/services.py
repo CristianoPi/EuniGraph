@@ -3,11 +3,9 @@ from __future__ import annotations
 import hashlib
 import importlib
 import json
-import math
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import UTC, datetime
-from html import escape
 from pathlib import Path
 from typing import Any, cast
 from uuid import UUID
@@ -604,9 +602,6 @@ class CoauthorshipGraphService:
                 "</text></svg>"
             )
 
-        cx = width / 2
-        cy = height / 2
-        radius = min(width, height) / 2 - 110
         sorted_nodes = sorted(
             nodes,
             key=lambda node: (-node["strength"], -node["degree"], node["label"]),
@@ -621,47 +616,35 @@ class CoauthorshipGraphService:
             "#ec4899",
         ]
         positions: dict[str, tuple[float, float]] = {}
-
-        if len(sorted_nodes) == 1:
-            positions[sorted_nodes[0]["id"]] = (cx, cy)
-        else:
-            for index, node in enumerate(sorted_nodes):
-                angle = (2 * math.pi * index) / len(sorted_nodes)
-                positions[node["id"]] = (
-                    cx + radius * math.cos(angle),
-                    cy + radius * math.sin(angle),
-                )
+        for node in sorted_nodes:
+            positions[node["id"]] = self._scatter_position(
+                node_id=node["id"],
+                width=width,
+                height=height,
+            )
 
         edge_elements = []
         for edge in edges:
             x1, y1 = positions[edge["source"]]
             x2, y2 = positions[edge["target"]]
-            stroke_width = 1 + min(edge["weight"], 6)
+            stroke_width = 0.35 + min(edge["weight"], 6) * 0.35
             edge_elements.append(
                 f'<line x1="{x1:.2f}" y1="{y1:.2f}" x2="{x2:.2f}" y2="{y2:.2f}" '
-                f'stroke="#94a3b8" stroke-opacity="0.75" stroke-width="{stroke_width:.2f}" />'
+                f'stroke="#94a3b8" stroke-opacity="0.28" stroke-width="{stroke_width:.2f}" />'
             )
 
         node_elements = []
-        label_limit = 25
-        labeled_node_ids = {node["id"] for node in sorted_nodes[:label_limit]}
         for node in sorted_nodes:
             x, y = positions[node["id"]]
             component_id = node.get("community_id")
             if component_id is None:
                 component_id = node.get("component_id", 0)
             color = palette[int(component_id or 0) % len(palette)]
-            size = 8 + min(node["strength"], 10) * 1.5
+            size = 1.8 + min(node["strength"], 12) * 0.3
             node_elements.append(
                 f'<circle cx="{x:.2f}" cy="{y:.2f}" r="{size:.2f}" fill="{color}" '
-                'stroke="#ffffff" stroke-width="2" />'
+                'stroke="#ffffff" stroke-width="0.6" />'
             )
-            if node["id"] in labeled_node_ids:
-                node_elements.append(
-                    f'<text x="{x:.2f}" y="{y - size - 8:.2f}" '
-                    'font-family="sans-serif" font-size="14" text-anchor="middle" '
-                    f'fill="#0f172a">{escape(str(node["label"]))}</text>'
-                )
 
         return (
             f'<svg xmlns="http://www.w3.org/2000/svg" width="{width}" height="{height}">'
@@ -672,6 +655,24 @@ class CoauthorshipGraphService:
             + "".join(node_elements)
             + "</g></svg>"
         )
+
+    def _scatter_position(
+        self,
+        *,
+        node_id: str,
+        width: int,
+        height: int,
+    ) -> tuple[float, float]:
+        margin_x = 70
+        margin_y = 70
+        digest = hashlib.sha256(node_id.encode("utf-8")).digest()
+        x_seed = int.from_bytes(digest[:8], byteorder="big")
+        y_seed = int.from_bytes(digest[8:16], byteorder="big")
+        usable_width = width - (margin_x * 2)
+        usable_height = height - (margin_y * 2)
+        x = margin_x + (x_seed / (2**64 - 1)) * usable_width
+        y = margin_y + (y_seed / (2**64 - 1)) * usable_height
+        return (x, y)
 
     def _publication_year(self, publication: PublicationModel | None) -> int | None:
         if publication is None:

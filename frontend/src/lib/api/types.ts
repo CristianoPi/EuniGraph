@@ -100,14 +100,21 @@ export type Organization = {
 };
 
 export type GraphBuildStatus = {
-  id?: string | null;
-  graph_type?: string | null;
+  build_id?: string | null;
+  graph_type: string;
   status: string;
+  started_at?: string | null;
   node_count?: number | null;
   edge_count?: number | null;
+  component_count?: number | null;
+  community_count?: number | null;
   created_at?: string | null;
   completed_at?: string | null;
+  is_active?: boolean;
+  graph_version?: string | null;
   artifact_paths?: Record<string, string> | null;
+  build_params?: Record<string, unknown> | null;
+  data_snapshot?: Record<string, unknown> | null;
   error_message?: string | null;
 };
 

@@ -42,7 +42,7 @@ export function SystemOverview() {
   if (health.isError || embeddings.isError || coauthorship.isError || semantic.isError) {
     return (
       <ErrorState
-        message="The frontend shell is running, but at least one backend integration request failed. Check the FastAPI stack, Docker profile and proxy configuration."
+        message="The interface is running, but at least one backend integration request failed. Check the backend services and the current local runtime."
       />
     );
   }

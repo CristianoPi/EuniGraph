@@ -16,9 +16,6 @@ export function AppShell({ children }: AppShellProps) {
           <div className="space-y-6">
             <div className="space-y-4">
               <Link href="/" className="block space-y-3">
-                <span className="inline-flex rounded-full border border-pine/20 bg-pine/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.3em] text-pine">
-                  EUNICE Prototype
-                </span>
                 <div>
                   <h1 className="text-3xl font-semibold tracking-tight text-ink">
                     {appConfig.name}
@@ -26,10 +23,6 @@ export function AppShell({ children }: AppShellProps) {
                   <p className="mt-2 text-sm leading-6 text-slate-600">{appConfig.subtitle}</p>
                 </div>
               </Link>
-              <div className="rounded-[1.5rem] bg-ink p-4 text-sm leading-6 text-white/82">
-                The shell is intentionally light: it gives the project a stable navigation and
-                data-integration surface before dashboard and graph explorer work starts.
-              </div>
             </div>
 
             <nav className="space-y-3">
@@ -42,20 +35,10 @@ export function AppShell({ children }: AppShellProps) {
 
         <div className="space-y-5">
           <header className="rounded-[2rem] border border-[color:var(--border)] bg-[color:var(--panel)] px-6 py-5 shadow-panel backdrop-blur">
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
-                  Application Shell
-                </p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">
-                  Shared layout, route placeholders, proxy-based API integration and server-state
-                  patterns for the next frontend iterations.
-                </p>
-              </div>
-              <div className="rounded-full border border-[color:var(--border)] bg-white/70 px-4 py-2 text-xs font-semibold uppercase tracking-[0.24em] text-slate-600">
-                Next.js + Tailwind + TanStack Query
-              </div>
-            </div>
+            <p className="text-sm leading-6 text-slate-600">
+              Explore canonical entities, workflow status, coauthorship links and semantic
+              relationships from one interface.
+            </p>
           </header>
           <main>{children}</main>
         </div>

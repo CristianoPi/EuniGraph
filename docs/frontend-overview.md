@@ -32,6 +32,8 @@ Main directories:
 - `src/components/`: shared layout, UI and state components
 - `src/hooks/`: TanStack Query hooks for backend-facing data
 - `src/lib/`: frontend config, API client and utilities
+- `src/components/graphs/`: shared graph explorer UI
+- `src/lib/graphs/`: graph payload mapping and explorer-specific helpers
 
 ## 4. Application Shell
 
@@ -90,7 +92,7 @@ Current routes:
 - `/entities/researchers/[id]`: researcher detail
 - `/entities/organizations`: organization browsing
 - `/entities/organizations/[id]`: organization detail
-- `/graphs`: graph-oriented placeholder
+- `/graphs`: unified graph explorer for coauthorship and semantic layers
 
 Supporting routes:
 - `loading`
@@ -148,3 +150,14 @@ The frontend foundation deliberately stops short of:
 - backend-driven total counts for catalog metrics
 
 These are deferred to later issues now that the structural groundwork and first browsing experience are in place.
+
+## 12. Graph Experience
+
+The graph explorer is now a real frontend surface rather than a placeholder.
+
+The current design principle is:
+- same UI pattern for both coauthorship and semantic graph layers
+- different node and edge meaning depending on the selected layer
+
+Dedicated documentation:
+- [docs/frontend-graph-explorer.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-graph-explorer.md)

@@ -10,6 +10,7 @@ from eunigraph.api.routers.normalization import router as normalization_router
 from eunigraph.api.routers.organizations import router as organizations_router
 from eunigraph.api.routers.publications import router as publications_router
 from eunigraph.api.routers.researchers import router as researchers_router
+from eunigraph.api.routers.semantic_graph import router as semantic_graph_router
 from eunigraph.api.routers.source_records import router as source_records_router
 
 api_router = APIRouter()
@@ -19,6 +20,7 @@ api_router.include_router(researchers_router)
 api_router.include_router(organizations_router)
 api_router.include_router(source_records_router)
 api_router.include_router(coauthorship_router)
+api_router.include_router(semantic_graph_router)
 api_router.include_router(embeddings_router)
 api_router.include_router(admin_router)
 api_router.include_router(normalization_router)

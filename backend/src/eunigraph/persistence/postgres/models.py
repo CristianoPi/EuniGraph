@@ -22,6 +22,7 @@ from eunigraph.modules.normalization.infrastructure.models import (
     NormalizationFindingModel,
     NormalizationRunModel,
 )
+from eunigraph.modules.semantic_graph.infrastructure.models import SemanticGraphBuildModel
 
 __all__ = [
     "CoauthorshipGraphBuildModel",
@@ -37,5 +38,6 @@ __all__ = [
     "PublicationOrganizationModel",
     "ResearcherAffiliationModel",
     "ResearcherModel",
+    "SemanticGraphBuildModel",
     "SourceRecordModel",
 ]

@@ -101,6 +101,15 @@ Coauthorship graph endpoints:
 - `GET /api/v1/coauthorship-graph/nodes/{researcher_id}`
 - `GET /api/v1/coauthorship-graph/visualization`
 
+Semantic graph endpoints:
+- `POST /api/v1/semantic-graph/build`
+- `GET /api/v1/semantic-graph/status`
+- `GET /api/v1/semantic-graph`
+- `GET /api/v1/semantic-graph/subgraph`
+- `GET /api/v1/semantic-graph/metrics`
+- `GET /api/v1/semantic-graph/nodes/{publication_id}`
+- `GET /api/v1/semantic-graph/visualization`
+
 Embeddings endpoints:
 - `GET /api/v1/embeddings/provider`
 - `GET /api/v1/embeddings/status`
@@ -188,6 +197,38 @@ Default artifact path:
 - default value: `data/graphs/coauthorship/`
 
 Retrieval endpoints always use the latest successful active build. A failed rebuild does not force the API to reconstruct the graph live.
+
+## Semantic Graph Materialization
+
+The semantic graph is materialized from publication embeddings already stored in Qdrant and then served from persisted artifacts.
+
+Current characteristics:
+- nodes derive from canonical `publication`
+- edges derive from Qdrant nearest neighbors
+- graph type is undirected
+- weights use the Qdrant similarity score
+- self-loops are discarded
+- duplicate edges are collapsed into one undirected relation
+
+Artifacts persisted for each build:
+- a `graph-tool` binary graph file
+- a JSON payload used by retrieval APIs
+- a static SVG visualization
+- build metadata in `semantic_graph_build`
+
+Default storage path:
+- `data/graphs/semantic/`
+
+Build parameters exposed by the API include:
+- `top_k`
+- `score_threshold`
+- `edge_symmetry_policy`
+- `mutual_knn`
+- `include_isolated_nodes`
+- optional `publication_type`
+- optional `language_code`
+- optional `year_from`
+- optional `year_to`
 
 ## Embeddings Layer
 

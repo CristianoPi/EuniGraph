@@ -58,6 +58,49 @@ class QdrantPublicationEmbeddingStore:
             "status": getattr(collection_info, "status", None),
         }
 
+    def get_collection_distance(self, collection_name: str) -> str | None:
+        if not self.client.collection_exists(collection_name):
+            return None
+        collection_info = self.client.get_collection(collection_name)
+        vectors = getattr(getattr(collection_info, "config", None), "params", None)
+        vectors = getattr(vectors, "vectors", None)
+        distance = getattr(vectors, "distance", None)
+        if distance is None and isinstance(vectors, dict):
+            distance = vectors.get("distance")
+        if distance is None:
+            return None
+        return getattr(distance, "value", str(distance))
+
+    def query_similar_publications(
+        self,
+        *,
+        collection_name: str,
+        point_id: str,
+        limit: int,
+        score_threshold: float | None,
+    ) -> list[dict[str, Any]]:
+        response = self.client.query_points(
+            collection_name=collection_name,
+            query=point_id,
+            limit=limit,
+            with_payload=True,
+            with_vectors=False,
+            score_threshold=score_threshold,
+        )
+        results: list[dict[str, Any]] = []
+        for point in getattr(response, "points", []) or []:
+            score = getattr(point, "score", None)
+            if score is None:
+                continue
+            results.append(
+                {
+                    "point_id": str(point.id),
+                    "score": float(score),
+                    "payload": point.payload or {},
+                },
+            )
+        return results
+
     def delete_collection(self, collection_name: str) -> bool:
         if not self.client.collection_exists(collection_name):
             return False

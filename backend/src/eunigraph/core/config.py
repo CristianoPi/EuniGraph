@@ -23,6 +23,10 @@ class Settings(BaseSettings):
         default=Path("./data/openaire/beginners_kit"),
         alias="OPENAIRE_BEGINNERS_KIT_PATH",
     )
+    coauthorship_graph_storage_path: Path = Field(
+        default=Path("./data/graphs/coauthorship"),
+        alias="EUNIGRAPH_COAUTHORSHIP_GRAPH_STORAGE_PATH",
+    )
 
     model_config = SettingsConfigDict(
         env_file=(".env", "../.env"),
@@ -35,6 +39,10 @@ class Settings(BaseSettings):
         if not self.openaire_beginners_kit_path.is_absolute():
             self.openaire_beginners_kit_path = (
                 repo_root / self.openaire_beginners_kit_path
+            ).resolve()
+        if not self.coauthorship_graph_storage_path.is_absolute():
+            self.coauthorship_graph_storage_path = (
+                repo_root / self.coauthorship_graph_storage_path
             ).resolve()
 
 

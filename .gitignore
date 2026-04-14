@@ -36,3 +36,6 @@ build/
 
 # OpenAIRE local datasets
 data/openaire/beginners_kit/
+
+# Materialized graph artifacts
+data/graphs/

@@ -79,6 +79,31 @@ Manual writes are tracked through the provenance layer with a dedicated logical 
 
 See [docs/seed-and-api.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/seed-and-api.md) for the current API surface and provenance behavior.
 
+## Coauthorship Graph Pipeline
+
+The coauthorship graph is materialized explicitly and is not rebuilt on every API request.
+
+Runtime behavior:
+- `POST /api/v1/coauthorship-graph/build` builds the graph from canonical PostgreSQL data
+- the build persists graph artifacts under `EUNIGRAPH_COAUTHORSHIP_GRAPH_STORAGE_PATH`
+- retrieval endpoints serve the latest successful materialized build
+- the backend stores build metadata in PostgreSQL so failed and obsolete builds stay distinguishable
+
+Default artifact path:
+
+`data/graphs/coauthorship/`
+
+Main endpoints:
+- `POST /api/v1/coauthorship-graph/build`
+- `GET /api/v1/coauthorship-graph/status`
+- `GET /api/v1/coauthorship-graph`
+- `GET /api/v1/coauthorship-graph/subgraph`
+- `GET /api/v1/coauthorship-graph/metrics`
+- `GET /api/v1/coauthorship-graph/nodes/{researcher_id}`
+- `GET /api/v1/coauthorship-graph/visualization`
+
+See [docs/coauthorship.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/coauthorship.md) for build logic, artifact layout, metrics and current limitations.
+
 ## Architecture Direction
 
 - Start simple: one deployable unit, clean module boundaries
@@ -89,3 +114,4 @@ See [docs/seed-and-api.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/s
 See [docs/architecture.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/architecture.md) for the initial architecture baseline.
 See [docs/seed-and-api.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/seed-and-api.md) for the current seed and API development notes.
 See [docs/normalization.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/normalization.md) for the current normalization and deduplication rules.
+See [docs/coauthorship.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/coauthorship.md) for the materialized coauthorship graph pipeline.

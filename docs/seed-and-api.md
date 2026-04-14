@@ -92,6 +92,15 @@ Development seed/admin endpoints:
 - `GET /api/v1/admin/normalization/status`
 - `GET /api/v1/admin/normalization/findings`
 
+Coauthorship graph endpoints:
+- `POST /api/v1/coauthorship-graph/build`
+- `GET /api/v1/coauthorship-graph/status`
+- `GET /api/v1/coauthorship-graph`
+- `GET /api/v1/coauthorship-graph/subgraph`
+- `GET /api/v1/coauthorship-graph/metrics`
+- `GET /api/v1/coauthorship-graph/nodes/{researcher_id}`
+- `GET /api/v1/coauthorship-graph/visualization`
+
 ## Manual Canonical Entity Management
 
 The main domain endpoints are also the manual entity management APIs for the MVP.
@@ -150,6 +159,27 @@ This makes it possible to inspect, for example:
 - only manual API provenance with `source_type=manual_api_entry`
 - all provenance rows linked to one canonical entity with `canonical_entity_id=<uuid>`
 
+## Coauthorship Materialization
+
+The coauthorship graph is materialized from canonical PostgreSQL data and then served from persisted artifacts.
+
+Input tables:
+- `researcher`
+- `publication`
+- `publication_author`
+
+Persisted outputs:
+- a `graph-tool` binary graph file
+- a JSON payload used by retrieval APIs
+- a static SVG visualization
+- build metadata in `coauthorship_graph_build`
+
+Default artifact path:
+- `EUNIGRAPH_COAUTHORSHIP_GRAPH_STORAGE_PATH`
+- default value: `data/graphs/coauthorship/`
+
+Retrieval endpoints always use the latest successful active build. A failed rebuild does not force the API to reconstruct the graph live.
+
 ## Current Limitations
 
 - no automatic download of the Beginner's Kit
@@ -157,3 +187,5 @@ This makes it possible to inspect, for example:
 - no canonical `datasource` entity API for OpenAIRE datasource records yet
 - relation-to-affiliation mapping is intentionally conservative; publication-organization mapping is the primary relation materialized from `relation.tar` in the MVP
 - manual provenance for `researcher` and `organization` is stored in `source_record` but those entities do not yet have a direct foreign key to the latest provenance row
+- coauthorship graph rebuilds are explicit API operations; there is no automatic rebuild trigger yet
+- subgraph filtering currently uses materialized node metadata and edge weights, not dynamic graph recomputation

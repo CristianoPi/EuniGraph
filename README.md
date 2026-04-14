@@ -150,3 +150,4 @@ See [docs/seed-and-api.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/s
 See [docs/normalization.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/normalization.md) for the current normalization and deduplication rules.
 See [docs/coauthorship.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/coauthorship.md) for the materialized coauthorship graph pipeline.
 See [docs/embeddings.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/embeddings.md) for the provider-based embeddings layer and Qdrant integration.
+See [docs/semantic-graph.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/semantic-graph.md) for the materialized semantic similarity graph pipeline.

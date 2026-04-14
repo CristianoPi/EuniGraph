@@ -20,6 +20,7 @@ def test_metadata_contains_initial_tables() -> None:
         "normalization_run",
         "normalization_finding",
         "coauthorship_graph_build",
+        "semantic_graph_build",
     }
 
     assert expected_tables.issubset(set(Base.metadata.tables))

@@ -1,29 +1,18 @@
 import { PageHeader } from "@/components/ui/page-header";
-import { Panel } from "@/components/ui/panel";
-import { GraphStatusPanels, SystemOverview } from "@/components/widgets/system-overview";
+import { DashboardOverview } from "@/components/dashboard/dashboard-overview";
+import { QuickSearch } from "@/components/dashboard/quick-search";
 
 export default function DashboardPage() {
   return (
     <div className="space-y-6">
       <PageHeader
         eyebrow="Dashboard"
-        title="Operational snapshots for the main backend workflows."
-        description="This page is still intentionally lightweight, but it already gives the frontend a concrete place to surface workflow status from embeddings and graph pipelines."
+        title="A first dashboard that makes the prototype readable without opening a graph."
+        description="The overview combines stable backend endpoints into a pragmatic dashboard: catalog snapshots, workflow presence and quick entry points into publications, researchers and organizations."
       />
 
-      <SystemOverview />
-
-      <GraphStatusPanels />
-
-      <Panel
-        title="Placeholder scope"
-        description="The full dashboard is deferred, but this route is now the stable slot for future KPIs, seed progress, normalization findings and ingestion health."
-      >
-        <p className="text-sm leading-7 text-slate-700">
-          Later issues can add richer cards, charts and workflow detail without changing the shell
-          or the data-fetching conventions introduced here.
-        </p>
-      </Panel>
+      <DashboardOverview />
+      <QuickSearch />
     </div>
   );
 }

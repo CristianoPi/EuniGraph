@@ -8,6 +8,8 @@ The frontend is now a real application workspace built with:
 It provides:
 - the shared application shell
 - the first navigable route structure
+- dashboard and cross-entity quick search
+- browsing and detail routes for publications, researchers and organizations
 - a proxy-based integration layer toward the FastAPI backend
 - reusable loading, error and empty states
 

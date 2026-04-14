@@ -10,4 +10,9 @@ from eunigraph.core.config import get_settings
 @lru_cache(maxsize=1)
 def get_qdrant_client() -> QdrantClient:
     settings = get_settings()
+    if settings.qdrant_api_key:
+        return QdrantClient(
+            url=settings.qdrant_url,
+            api_key=settings.qdrant_api_key,
+        )
     return QdrantClient(url=settings.qdrant_url)

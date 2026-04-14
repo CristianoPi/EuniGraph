@@ -101,6 +101,15 @@ Coauthorship graph endpoints:
 - `GET /api/v1/coauthorship-graph/nodes/{researcher_id}`
 - `GET /api/v1/coauthorship-graph/visualization`
 
+Embeddings endpoints:
+- `GET /api/v1/embeddings/provider`
+- `GET /api/v1/embeddings/status`
+- `POST /api/v1/embeddings/build`
+- `POST /api/v1/embeddings/load-all`
+- `POST /api/v1/embeddings/reset`
+- `POST /api/v1/publications/{id}/embedding`
+- `GET /api/v1/publications/{id}/embedding`
+
 ## Manual Canonical Entity Management
 
 The main domain endpoints are also the manual entity management APIs for the MVP.
@@ -180,6 +189,41 @@ Default artifact path:
 
 Retrieval endpoints always use the latest successful active build. A failed rebuild does not force the API to reconstruct the graph live.
 
+## Embeddings Layer
+
+The embeddings layer uses a provider abstraction so the application orchestration does not depend directly on Gemini or any other vendor.
+
+Initial provider:
+- Gemini `gemini-embedding-001`
+
+Configured content fields:
+- `EMBEDDINGS_CONTENT_FIELDS`
+- default value: `title,authors,abstract`
+
+Current publication text construction:
+- `Title: <publication.title>`
+- `Authors: <publication authors in canonical order>`
+- `Abstract: <publication.abstract>`
+
+Only configured non-empty fields are included, in the configured order, separated by blank lines.
+
+Storage split:
+- Qdrant stores the semantic publication payload and vector
+- PostgreSQL stores canonical metadata in `publication_embedding`
+
+Tracked metadata includes:
+- publication id
+- embedding provider
+- embedding model
+- embedding version
+- Qdrant collection
+- Qdrant point id
+- content hash
+
+The Qdrant payload is intentionally publication-centric. It includes the semantic text used for embedding plus lightweight publication fields such as title, authors and abstract, instead of exposing provider/model/version as the main payload.
+
+`QDRANT_API_KEY` is optional for local Docker development. The client only sends it when configured.
+
 ## Current Limitations
 
 - no automatic download of the Beginner's Kit
@@ -189,3 +233,6 @@ Retrieval endpoints always use the latest successful active build. A failed rebu
 - manual provenance for `researcher` and `organization` is stored in `source_record` but those entities do not yet have a direct foreign key to the latest provenance row
 - coauthorship graph rebuilds are explicit API operations; there is no automatic rebuild trigger yet
 - subgraph filtering currently uses materialized node metadata and edge weights, not dynamic graph recomputation
+- embeddings generation currently targets publications only
+- the first provider implementation is Gemini-only, even though the orchestration is provider-based
+- the current APIs expose generation and metadata retrieval, not semantic search endpoints yet

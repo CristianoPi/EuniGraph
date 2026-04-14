@@ -669,6 +669,7 @@ class NormalizationService:
             duplicate_embedding = self.session.scalar(
                 select(PublicationEmbeddingModel).where(
                     PublicationEmbeddingModel.publication_id == target.id,
+                    PublicationEmbeddingModel.embedding_provider == embedding.embedding_provider,
                     PublicationEmbeddingModel.embedding_model == embedding.embedding_model,
                     PublicationEmbeddingModel.embedding_version == embedding.embedding_version,
                 ),

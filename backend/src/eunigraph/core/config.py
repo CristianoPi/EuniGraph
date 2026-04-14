@@ -2,10 +2,10 @@ from __future__ import annotations
 
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Annotated, Any
 
-from pydantic import Field
-from pydantic_settings import BaseSettings, SettingsConfigDict
+from pydantic import AliasChoices, Field, field_validator
+from pydantic_settings import BaseSettings, NoDecode, SettingsConfigDict
 
 
 class Settings(BaseSettings):
@@ -18,7 +18,33 @@ class Settings(BaseSettings):
         default="postgresql+psycopg://eunigraph:eunigraph@localhost:5432/eunigraph",
         alias="EUNIGRAPH_DATABASE_URL",
     )
-    qdrant_url: str = Field(default="http://localhost:6333", alias="EUNIGRAPH_QDRANT_URL")
+    qdrant_url: str = Field(
+        default="http://localhost:6333",
+        validation_alias=AliasChoices("QDRANT_URL", "EUNIGRAPH_QDRANT_URL"),
+    )
+    qdrant_api_key: str | None = Field(
+        default=None,
+        validation_alias=AliasChoices("QDRANT_API_KEY", "EUNIGRAPH_QDRANT_API_KEY"),
+    )
+    qdrant_collection_publications: str = Field(
+        default="publication_embeddings",
+        alias="QDRANT_COLLECTION_PUBLICATIONS",
+    )
+    embeddings_enabled: bool = Field(default=True, alias="EMBEDDINGS_ENABLED")
+    embeddings_provider: str = Field(default="gemini", alias="EMBEDDINGS_PROVIDER")
+    embeddings_model: str = Field(default="gemini-embedding-001", alias="EMBEDDINGS_MODEL")
+    embeddings_version: str = Field(default="v1", alias="EMBEDDINGS_VERSION")
+    embeddings_batch_size: int = Field(default=16, alias="EMBEDDINGS_BATCH_SIZE")
+    embeddings_request_timeout_seconds: int = Field(
+        default=60,
+        alias="EMBEDDINGS_REQUEST_TIMEOUT_SECONDS",
+    )
+    embeddings_max_retries: int = Field(default=3, alias="EMBEDDINGS_MAX_RETRIES")
+    embeddings_content_fields: Annotated[tuple[str, ...], NoDecode] = Field(
+        default=("title", "authors", "abstract"),
+        alias="EMBEDDINGS_CONTENT_FIELDS",
+    )
+    gemini_api_key: str | None = Field(default=None, alias="GEMINI_API_KEY")
     openaire_beginners_kit_path: Path = Field(
         default=Path("./data/openaire/beginners_kit"),
         alias="OPENAIRE_BEGINNERS_KIT_PATH",
@@ -33,6 +59,45 @@ class Settings(BaseSettings):
         env_file_encoding="utf-8",
         extra="ignore",
     )
+
+    @field_validator(
+        "qdrant_api_key",
+        "gemini_api_key",
+        mode="before",
+    )
+    @classmethod
+    def normalize_optional_secrets(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        return normalized or None
+
+    @field_validator(
+        "embeddings_provider",
+        "embeddings_model",
+        "embeddings_version",
+        mode="before",
+    )
+    @classmethod
+    def normalize_embedding_strings(cls, value: str) -> str:
+        return value.strip()
+
+    @field_validator("embeddings_content_fields", mode="before")
+    @classmethod
+    def parse_embeddings_content_fields(
+        cls,
+        value: str | tuple[str, ...] | list[str],
+    ) -> tuple[str, ...]:
+        if isinstance(value, str):
+            fields = tuple(
+                item.strip().lower()
+                for item in value.split(",")
+                if item.strip()
+            )
+            return fields or ("title", "authors", "abstract")
+        if isinstance(value, list):
+            return tuple(item.strip().lower() for item in value if item.strip())
+        return tuple(item.strip().lower() for item in value if item.strip())
 
     def model_post_init(self, __context: Any) -> None:
         repo_root = Path(__file__).resolve().parents[4]

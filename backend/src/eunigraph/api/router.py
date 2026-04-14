@@ -4,6 +4,7 @@ from fastapi import APIRouter
 
 from eunigraph.api.routers.admin import router as admin_router
 from eunigraph.api.routers.coauthorship import router as coauthorship_router
+from eunigraph.api.routers.embeddings import router as embeddings_router
 from eunigraph.api.routers.health import router as health_router
 from eunigraph.api.routers.normalization import router as normalization_router
 from eunigraph.api.routers.organizations import router as organizations_router
@@ -18,5 +19,6 @@ api_router.include_router(researchers_router)
 api_router.include_router(organizations_router)
 api_router.include_router(source_records_router)
 api_router.include_router(coauthorship_router)
+api_router.include_router(embeddings_router)
 api_router.include_router(admin_router)
 api_router.include_router(normalization_router)

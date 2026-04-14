@@ -124,9 +124,11 @@ def test_collect_graph_inputs_builds_weighted_edges_and_optional_isolated_nodes(
 
     assert str(researcher_d.id) in with_isolated_nodes
     assert str(researcher_d.id) not in without_isolated_nodes
-    assert edges[(str(researcher_a.id), str(researcher_b.id))]["weight"] == 2
-    assert edges[(str(researcher_a.id), str(researcher_b.id))]["first_collaboration_year"] == 2020
-    assert edges[(str(researcher_a.id), str(researcher_b.id))]["last_collaboration_year"] == 2022
+    ab_sorted = sorted((str(researcher_a.id), str(researcher_b.id)))
+    ab_key = (ab_sorted[0], ab_sorted[1])
+    assert edges[ab_key]["weight"] == 2
+    assert edges[ab_key]["first_collaboration_year"] == 2020
+    assert edges[ab_key]["last_collaboration_year"] == 2022
     ac_sorted = sorted((str(researcher_a.id), str(researcher_c.id)))
     bc_sorted = sorted((str(researcher_b.id), str(researcher_c.id)))
     ac_key = (ac_sorted[0], ac_sorted[1])

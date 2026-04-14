@@ -104,6 +104,40 @@ Main endpoints:
 
 See [docs/coauthorship.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/coauthorship.md) for build logic, artifact layout, metrics and current limitations.
 
+## Embeddings Layer
+
+Publication embeddings are generated through a provider abstraction and persisted across:
+- PostgreSQL for canonical embedding metadata
+- Qdrant for vector storage
+
+The initial provider is:
+- Gemini `gemini-embedding-001`
+
+Key runtime settings:
+- `EMBEDDINGS_ENABLED`
+- `EMBEDDINGS_PROVIDER`
+- `EMBEDDINGS_MODEL`
+- `EMBEDDINGS_VERSION`
+- `EMBEDDINGS_BATCH_SIZE`
+- `EMBEDDINGS_REQUEST_TIMEOUT_SECONDS`
+- `EMBEDDINGS_MAX_RETRIES`
+- `EMBEDDINGS_CONTENT_FIELDS`
+- `GEMINI_API_KEY`
+- `QDRANT_URL`
+- `QDRANT_API_KEY`
+- `QDRANT_COLLECTION_PUBLICATIONS`
+
+`QDRANT_API_KEY` is optional in the default local Docker setup.
+
+Main endpoints:
+- `POST /api/v1/embeddings/build`
+- `POST /api/v1/embeddings/load-all`
+- `POST /api/v1/embeddings/reset`
+- `GET /api/v1/embeddings/status`
+- `GET /api/v1/embeddings/provider`
+- `POST /api/v1/publications/{id}/embedding`
+- `GET /api/v1/publications/{id}/embedding`
+
 ## Architecture Direction
 
 - Start simple: one deployable unit, clean module boundaries
@@ -115,3 +149,4 @@ See [docs/architecture.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/a
 See [docs/seed-and-api.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/seed-and-api.md) for the current seed and API development notes.
 See [docs/normalization.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/normalization.md) for the current normalization and deduplication rules.
 See [docs/coauthorship.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/coauthorship.md) for the materialized coauthorship graph pipeline.
+See [docs/embeddings.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/embeddings.md) for the provider-based embeddings layer and Qdrant integration.

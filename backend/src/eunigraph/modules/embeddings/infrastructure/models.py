@@ -15,6 +15,7 @@ class PublicationEmbeddingModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     __table_args__ = (
         UniqueConstraint(
             "publication_id",
+            "embedding_provider",
             "embedding_model",
             "embedding_version",
             name="uq_publication_embedding_version",
@@ -31,6 +32,7 @@ class PublicationEmbeddingModel(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         ForeignKey("publication.id", ondelete="CASCADE"),
         nullable=False,
     )
+    embedding_provider: Mapped[str] = mapped_column(String(64), nullable=False)
     qdrant_collection: Mapped[str] = mapped_column(String(128), nullable=False)
     qdrant_point_id: Mapped[str] = mapped_column(String(255), nullable=False)
     embedding_model: Mapped[str] = mapped_column(String(128), nullable=False)

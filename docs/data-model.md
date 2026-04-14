@@ -203,6 +203,7 @@ Links a canonical publication to its vector representation in Qdrant.
 Main fields:
 - `id`
 - `publication_id`
+- `embedding_provider`
 - `qdrant_collection`
 - `qdrant_point_id`
 - `embedding_model`

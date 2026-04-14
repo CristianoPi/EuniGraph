@@ -7,6 +7,11 @@ from eunigraph.api.schemas.health import HealthResponse
 router = APIRouter()
 
 
-@router.get("", response_model=HealthResponse, summary="Service health")
+@router.get(
+    "",
+    response_model=HealthResponse,
+    summary="Service health",
+    description="Lightweight readiness endpoint for the FastAPI backend runtime.",
+)
 def healthcheck() -> HealthResponse:
     return HealthResponse(status="ok", service="backend")

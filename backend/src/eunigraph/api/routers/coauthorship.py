@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from eunigraph.api.deps import get_app_settings, get_db_session
+from eunigraph.api.openapi import COMMON_ERROR_RESPONSES
 from eunigraph.api.schemas.coauthorship import (
     CoauthorshipGraphBuildRequest,
     CoauthorshipGraphBuildStatusResponse,
@@ -18,7 +19,11 @@ from eunigraph.api.schemas.coauthorship import (
 from eunigraph.core.config import Settings
 from eunigraph.modules.coauthorship.application import CoauthorshipGraphService
 
-router = APIRouter(prefix="/coauthorship-graph", tags=["coauthorship"])
+router = APIRouter(
+    prefix="/coauthorship-graph",
+    tags=["coauthorship"],
+    responses={422: COMMON_ERROR_RESPONSES[422]},
+)
 DB_SESSION = Depends(get_db_session)
 APP_SETTINGS = Depends(get_app_settings)
 MAX_NODES_QUERY = Query(default=None, ge=1, le=1000)
@@ -29,7 +34,15 @@ def _service(session: Session, settings: Settings) -> CoauthorshipGraphService:
     return CoauthorshipGraphService(session, settings)
 
 
-@router.post("/build", response_model=CoauthorshipGraphBuildStatusResponse)
+@router.post(
+    "/build",
+    response_model=CoauthorshipGraphBuildStatusResponse,
+    summary="Build coauthorship graph",
+    description=(
+        "Materialize the coauthorship graph from canonical publication "
+        "authorship data and persist its artifacts."
+    ),
+)
 def build_coauthorship_graph(
     payload: CoauthorshipGraphBuildRequest,
     session: Session = DB_SESSION,
@@ -42,7 +55,15 @@ def build_coauthorship_graph(
     return CoauthorshipGraphBuildStatusResponse(**asdict(summary))
 
 
-@router.get("/status", response_model=CoauthorshipGraphBuildStatusResponse)
+@router.get(
+    "/status",
+    response_model=CoauthorshipGraphBuildStatusResponse,
+    summary="Get coauthorship graph status",
+    description=(
+        "Return metadata for the latest coauthorship graph build, "
+        "including artifact paths and counts."
+    ),
+)
 def get_coauthorship_graph_status(
     session: Session = DB_SESSION,
     settings: Settings = APP_SETTINGS,
@@ -52,7 +73,16 @@ def get_coauthorship_graph_status(
     )
 
 
-@router.get("", response_model=CoauthorshipGraphPayloadResponse)
+@router.get(
+    "",
+    response_model=CoauthorshipGraphPayloadResponse,
+    summary="Get coauthorship graph",
+    description=(
+        "Return the persisted JSON payload of the latest successful "
+        "coauthorship graph build."
+    ),
+    responses={404: COMMON_ERROR_RESPONSES[404]},
+)
 def get_coauthorship_graph(
     session: Session = DB_SESSION,
     settings: Settings = APP_SETTINGS,
@@ -60,7 +90,13 @@ def get_coauthorship_graph(
     return CoauthorshipGraphPayloadResponse(**_service(session, settings).get_graph())
 
 
-@router.get("/subgraph", response_model=CoauthorshipGraphPayloadResponse)
+@router.get(
+    "/subgraph",
+    response_model=CoauthorshipGraphPayloadResponse,
+    summary="Get coauthorship subgraph",
+    description="Return a filtered coauthorship subgraph from the persisted materialized payload.",
+    responses={404: COMMON_ERROR_RESPONSES[404]},
+)
 def get_coauthorship_subgraph(
     researcher_id: UUID | None = None,
     organization_id: UUID | None = None,
@@ -80,7 +116,13 @@ def get_coauthorship_subgraph(
     return CoauthorshipGraphPayloadResponse(**payload)
 
 
-@router.get("/metrics", response_model=CoauthorshipGraphMetricsResponse)
+@router.get(
+    "/metrics",
+    response_model=CoauthorshipGraphMetricsResponse,
+    summary="Get coauthorship metrics",
+    description="Return graph-level metrics and top nodes for the latest coauthorship build.",
+    responses={404: COMMON_ERROR_RESPONSES[404]},
+)
 def get_coauthorship_metrics(
     session: Session = DB_SESSION,
     settings: Settings = APP_SETTINGS,
@@ -88,7 +130,16 @@ def get_coauthorship_metrics(
     return CoauthorshipGraphMetricsResponse(**_service(session, settings).get_metrics())
 
 
-@router.get("/nodes/{researcher_id}", response_model=CoauthorshipNodeMetricsResponse)
+@router.get(
+    "/nodes/{researcher_id}",
+    response_model=CoauthorshipNodeMetricsResponse,
+    summary="Get coauthorship node metrics",
+    description=(
+        "Return one researcher node plus incident edges and neighbors "
+        "from the persisted coauthorship graph."
+    ),
+    responses={404: COMMON_ERROR_RESPONSES[404]},
+)
 def get_coauthorship_node_metrics(
     researcher_id: UUID,
     session: Session = DB_SESSION,
@@ -99,7 +150,12 @@ def get_coauthorship_node_metrics(
     )
 
 
-@router.get("/visualization")
+@router.get(
+    "/visualization",
+    summary="Get coauthorship visualization",
+    description="Serve the persisted static SVG artifact for the active coauthorship graph build.",
+    responses={404: COMMON_ERROR_RESPONSES[404]},
+)
 def get_coauthorship_visualization(
     session: Session = DB_SESSION,
     settings: Settings = APP_SETTINGS,

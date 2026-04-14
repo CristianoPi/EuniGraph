@@ -8,6 +8,7 @@ from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
 from eunigraph.api.deps import get_app_settings, get_db_session
+from eunigraph.api.openapi import COMMON_ERROR_RESPONSES
 from eunigraph.api.schemas.semantic_graph import (
     SemanticGraphBuildRequest,
     SemanticGraphBuildStatusResponse,
@@ -18,7 +19,11 @@ from eunigraph.api.schemas.semantic_graph import (
 from eunigraph.core.config import Settings
 from eunigraph.modules.semantic_graph.application import SemanticGraphService
 
-router = APIRouter(prefix="/semantic-graph", tags=["semantic-graph"])
+router = APIRouter(
+    prefix="/semantic-graph",
+    tags=["semantic-graph"],
+    responses={422: COMMON_ERROR_RESPONSES[422]},
+)
 DB_SESSION = Depends(get_db_session)
 APP_SETTINGS = Depends(get_app_settings)
 
@@ -27,7 +32,15 @@ def _service(session: Session, settings: Settings) -> SemanticGraphService:
     return SemanticGraphService(session, settings)
 
 
-@router.post("/build", response_model=SemanticGraphBuildStatusResponse)
+@router.post(
+    "/build",
+    response_model=SemanticGraphBuildStatusResponse,
+    summary="Build semantic graph",
+    description=(
+        "Materialize the semantic similarity graph from publication "
+        "embeddings stored in Qdrant."
+    ),
+)
 def build_semantic_graph(
     payload: SemanticGraphBuildRequest,
     session: Session = DB_SESSION,
@@ -48,7 +61,15 @@ def build_semantic_graph(
     return SemanticGraphBuildStatusResponse(**asdict(summary))
 
 
-@router.get("/status", response_model=SemanticGraphBuildStatusResponse)
+@router.get(
+    "/status",
+    response_model=SemanticGraphBuildStatusResponse,
+    summary="Get semantic graph status",
+    description=(
+        "Return metadata for the latest semantic graph build, "
+        "including artifact paths and resolved build parameters."
+    ),
+)
 def get_semantic_graph_status(
     session: Session = DB_SESSION,
     settings: Settings = APP_SETTINGS,
@@ -56,7 +77,16 @@ def get_semantic_graph_status(
     return SemanticGraphBuildStatusResponse(**asdict(_service(session, settings).get_status()))
 
 
-@router.get("", response_model=SemanticGraphPayloadResponse)
+@router.get(
+    "",
+    response_model=SemanticGraphPayloadResponse,
+    summary="Get semantic graph",
+    description=(
+        "Return the persisted JSON payload of the latest successful "
+        "semantic similarity graph build."
+    ),
+    responses={404: COMMON_ERROR_RESPONSES[404]},
+)
 def get_semantic_graph(
     session: Session = DB_SESSION,
     settings: Settings = APP_SETTINGS,
@@ -64,7 +94,16 @@ def get_semantic_graph(
     return SemanticGraphPayloadResponse(**_service(session, settings).get_graph())
 
 
-@router.get("/subgraph", response_model=SemanticGraphPayloadResponse)
+@router.get(
+    "/subgraph",
+    response_model=SemanticGraphPayloadResponse,
+    summary="Get semantic subgraph",
+    description=(
+        "Return a filtered semantic similarity subgraph from the "
+        "persisted materialized payload."
+    ),
+    responses={404: COMMON_ERROR_RESPONSES[404]},
+)
 def get_semantic_subgraph(
     publication_id: UUID | None = None,
     organization_id: UUID | None = None,
@@ -86,7 +125,13 @@ def get_semantic_subgraph(
     return SemanticGraphPayloadResponse(**payload)
 
 
-@router.get("/metrics", response_model=SemanticGraphMetricsResponse)
+@router.get(
+    "/metrics",
+    response_model=SemanticGraphMetricsResponse,
+    summary="Get semantic graph metrics",
+    description="Return graph-level metrics and top nodes for the latest semantic graph build.",
+    responses={404: COMMON_ERROR_RESPONSES[404]},
+)
 def get_semantic_metrics(
     session: Session = DB_SESSION,
     settings: Settings = APP_SETTINGS,
@@ -94,7 +139,16 @@ def get_semantic_metrics(
     return SemanticGraphMetricsResponse(**_service(session, settings).get_metrics())
 
 
-@router.get("/nodes/{publication_id}", response_model=SemanticGraphNodeMetricsResponse)
+@router.get(
+    "/nodes/{publication_id}",
+    response_model=SemanticGraphNodeMetricsResponse,
+    summary="Get semantic node metrics",
+    description=(
+        "Return one publication node plus incident edges and neighbors "
+        "from the persisted semantic graph."
+    ),
+    responses={404: COMMON_ERROR_RESPONSES[404]},
+)
 def get_semantic_node_metrics(
     publication_id: UUID,
     session: Session = DB_SESSION,
@@ -105,7 +159,12 @@ def get_semantic_node_metrics(
     )
 
 
-@router.get("/visualization")
+@router.get(
+    "/visualization",
+    summary="Get semantic graph visualization",
+    description="Serve the persisted static SVG artifact for the active semantic graph build.",
+    responses={404: COMMON_ERROR_RESPONSES[404]},
+)
 def get_semantic_visualization(
     session: Session = DB_SESSION,
     settings: Settings = APP_SETTINGS,

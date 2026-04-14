@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from eunigraph.api.deps import get_db_session
+from eunigraph.api.openapi import COMMON_ERROR_RESPONSES
 from eunigraph.api.schemas.normalization import (
     NormalizationFindingResponse,
     NormalizationRunRequest,
@@ -13,7 +14,11 @@ from eunigraph.api.schemas.normalization import (
 )
 from eunigraph.modules.normalization.application import NormalizationService
 
-router = APIRouter(prefix="/admin/normalization", tags=["admin", "normalization"])
+router = APIRouter(
+    prefix="/admin/normalization",
+    tags=["admin", "normalization"],
+    responses={422: COMMON_ERROR_RESPONSES[422]},
+)
 DB_SESSION = Depends(get_db_session)
 LIMIT_QUERY = Query(default=100, ge=1, le=500)
 
@@ -26,7 +31,15 @@ def _finding_response(finding: object) -> NormalizationFindingResponse:
     return NormalizationFindingResponse.model_validate(finding)
 
 
-@router.post("/run", response_model=NormalizationRunResponse)
+@router.post(
+    "/run",
+    response_model=NormalizationRunResponse,
+    summary="Run normalization pipeline",
+    description=(
+        "Execute the deterministic normalization and deduplication "
+        "pipeline over canonical data."
+    ),
+)
 def run_normalization(
     payload: NormalizationRunRequest,
     session: Session = DB_SESSION,
@@ -35,7 +48,12 @@ def run_normalization(
     return _run_response(summary)
 
 
-@router.get("/status", response_model=NormalizationRunResponse | None)
+@router.get(
+    "/status",
+    response_model=NormalizationRunResponse | None,
+    summary="Get normalization status",
+    description="Return the latest normalization run summary when available.",
+)
 def get_normalization_status(
     session: Session = DB_SESSION,
 ) -> NormalizationRunResponse | None:
@@ -45,7 +63,15 @@ def get_normalization_status(
     return _run_response(summary)
 
 
-@router.get("/findings", response_model=list[NormalizationFindingResponse])
+@router.get(
+    "/findings",
+    response_model=list[NormalizationFindingResponse],
+    summary="List normalization findings",
+    description=(
+        "Return normalization findings and unresolved duplicate "
+        "candidates from recent runs."
+    ),
+)
 def list_normalization_findings(
     run_id: UUID | None = None,
     entity_type: str | None = None,

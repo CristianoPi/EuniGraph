@@ -7,13 +7,18 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from eunigraph.api.deps import get_db_session
+from eunigraph.api.openapi import COMMON_ERROR_RESPONSES
 from eunigraph.api.schemas.source_records import SourceRecordResponse
 from eunigraph.modules.ingestion.infrastructure.models import (
     DataSourceModel,
     SourceRecordModel,
 )
 
-router = APIRouter(prefix="/source-records", tags=["source-records"])
+router = APIRouter(
+    prefix="/source-records",
+    tags=["source-records"],
+    responses={422: COMMON_ERROR_RESPONSES[422]},
+)
 DB_SESSION = Depends(get_db_session)
 LIMIT_QUERY = Query(default=50, le=500)
 OFFSET_QUERY = Query(default=0, ge=0)
@@ -23,7 +28,15 @@ def _source_record_response(record: object) -> SourceRecordResponse:
     return SourceRecordResponse.model_validate(record)
 
 
-@router.get("", response_model=list[SourceRecordResponse])
+@router.get(
+    "",
+    response_model=list[SourceRecordResponse],
+    summary="List source records",
+    description=(
+        "Inspect raw provenance records with optional filters on "
+        "entity type, source identifiers and manual-entry linkage."
+    ),
+)
 def get_source_records(
     entity_type: str | None = None,
     source_identifier: str | None = None,
@@ -58,7 +71,13 @@ def get_source_records(
     return [_source_record_response(record) for record in records]
 
 
-@router.get("/{source_record_id}", response_model=SourceRecordResponse)
+@router.get(
+    "/{source_record_id}",
+    response_model=SourceRecordResponse,
+    summary="Get source record",
+    description="Return one raw source record by UUID, including the preserved raw payload.",
+    responses={404: COMMON_ERROR_RESPONSES[404]},
+)
 def get_source_record(
     source_record_id: UUID,
     session: Session = DB_SESSION,

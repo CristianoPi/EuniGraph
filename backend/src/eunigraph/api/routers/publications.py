@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from eunigraph.api.deps import get_db_session
+from eunigraph.api.openapi import COMMON_ERROR_RESPONSES
 from eunigraph.api.schemas.publications import (
     PublicationAuthorCreate,
     PublicationAuthorResponse,
@@ -27,7 +28,11 @@ from eunigraph.modules.catalog.application.services import (
     update_publication,
 )
 
-router = APIRouter(prefix="/publications", tags=["publications"])
+router = APIRouter(
+    prefix="/publications",
+    tags=["publications"],
+    responses={422: COMMON_ERROR_RESPONSES[422]},
+)
 DB_SESSION = Depends(get_db_session)
 LIMIT_QUERY = Query(default=50, le=500)
 OFFSET_QUERY = Query(default=0, ge=0)
@@ -47,7 +52,15 @@ def _publication_organization_response(
     return PublicationOrganizationResponse.model_validate(organization)
 
 
-@router.get("", response_model=list[PublicationResponse])
+@router.get(
+    "",
+    response_model=list[PublicationResponse],
+    summary="List publications",
+    description=(
+        "Return canonical publications with optional filters on DOI, "
+        "year, title or OpenAIRE id."
+    ),
+)
 def get_publications(
     doi: str | None = None,
     publication_year: int | None = None,
@@ -71,7 +84,13 @@ def get_publications(
     return [_publication_response(publication) for publication in publications]
 
 
-@router.get("/{publication_id}", response_model=PublicationResponse)
+@router.get(
+    "/{publication_id}",
+    response_model=PublicationResponse,
+    summary="Get publication",
+    description="Return one canonical publication by UUID.",
+    responses={404: COMMON_ERROR_RESPONSES[404]},
+)
 def get_publication(
     publication_id: UUID,
     session: Session = DB_SESSION,
@@ -79,7 +98,17 @@ def get_publication(
     return _publication_response(get_publication_or_404(session, publication_id))
 
 
-@router.post("", response_model=PublicationResponse, status_code=201)
+@router.post(
+    "",
+    response_model=PublicationResponse,
+    status_code=201,
+    summary="Create publication",
+    description=(
+        "Create a canonical publication and persist manual provenance "
+        "through the existing application services."
+    ),
+    responses={400: COMMON_ERROR_RESPONSES[400]},
+)
 def post_publication(
     payload: PublicationCreate,
     session: Session = DB_SESSION,
@@ -88,7 +117,16 @@ def post_publication(
     return _publication_response(publication)
 
 
-@router.patch("/{publication_id}", response_model=PublicationResponse)
+@router.patch(
+    "/{publication_id}",
+    response_model=PublicationResponse,
+    summary="Update publication",
+    description="Apply a partial update to a canonical publication.",
+    responses={
+        400: COMMON_ERROR_RESPONSES[400],
+        404: COMMON_ERROR_RESPONSES[404],
+    },
+)
 def patch_publication(
     publication_id: UUID,
     payload: PublicationUpdate,
@@ -103,7 +141,13 @@ def patch_publication(
     return _publication_response(updated_publication)
 
 
-@router.get("/{publication_id}/authors", response_model=list[PublicationAuthorResponse])
+@router.get(
+    "/{publication_id}/authors",
+    response_model=list[PublicationAuthorResponse],
+    summary="List publication authors",
+    description="Return publication authors in canonical author order.",
+    responses={404: COMMON_ERROR_RESPONSES[404]},
+)
 def get_publication_authors(
     publication_id: UUID,
     session: Session = DB_SESSION,
@@ -112,7 +156,17 @@ def get_publication_authors(
     return [_publication_author_response(author) for author in authors]
 
 
-@router.post("/{publication_id}/authors", response_model=PublicationAuthorResponse, status_code=201)
+@router.post(
+    "/{publication_id}/authors",
+    response_model=PublicationAuthorResponse,
+    status_code=201,
+    summary="Create publication author link",
+    description="Attach a researcher to a publication while preserving author order.",
+    responses={
+        400: COMMON_ERROR_RESPONSES[400],
+        404: COMMON_ERROR_RESPONSES[404],
+    },
+)
 def post_publication_author(
     publication_id: UUID,
     payload: PublicationAuthorCreate,
@@ -126,7 +180,16 @@ def post_publication_author(
     return _publication_author_response(author)
 
 
-@router.get("/{publication_id}/organizations", response_model=list[PublicationOrganizationResponse])
+@router.get(
+    "/{publication_id}/organizations",
+    response_model=list[PublicationOrganizationResponse],
+    summary="List publication organizations",
+    description=(
+        "Return organizations linked to a publication through "
+        "canonical publication-organization relations."
+    ),
+    responses={404: COMMON_ERROR_RESPONSES[404]},
+)
 def get_publication_organizations(
     publication_id: UUID,
     session: Session = DB_SESSION,
@@ -142,6 +205,12 @@ def get_publication_organizations(
     "/{publication_id}/organizations",
     response_model=PublicationOrganizationResponse,
     status_code=201,
+    summary="Create publication organization link",
+    description="Attach an organization to a publication with an explicit relation type.",
+    responses={
+        400: COMMON_ERROR_RESPONSES[400],
+        404: COMMON_ERROR_RESPONSES[404],
+    },
 )
 def post_publication_organization(
     publication_id: UUID,

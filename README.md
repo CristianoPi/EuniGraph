@@ -146,6 +146,7 @@ Main endpoints:
 - Containerize early to reduce onboarding friction and environment drift
 
 See [docs/architecture.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/architecture.md) for the initial architecture baseline.
+See [docs/backend-overview.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/backend-overview.md) for the backend structure, API families and Swagger/OpenAPI entry points.
 See [docs/seed-and-api.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/seed-and-api.md) for the current seed and API development notes.
 See [docs/normalization.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/normalization.md) for the current normalization and deduplication rules.
 See [docs/coauthorship.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/coauthorship.md) for the materialized coauthorship graph pipeline.

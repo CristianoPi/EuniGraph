@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from eunigraph.api.deps import get_db_session
+from eunigraph.api.openapi import COMMON_ERROR_RESPONSES
 from eunigraph.api.schemas.organizations import (
     OrganizationCreate,
     OrganizationResponse,
@@ -19,7 +20,11 @@ from eunigraph.modules.catalog.application.services import (
     update_organization,
 )
 
-router = APIRouter(prefix="/organizations", tags=["organizations"])
+router = APIRouter(
+    prefix="/organizations",
+    tags=["organizations"],
+    responses={422: COMMON_ERROR_RESPONSES[422]},
+)
 DB_SESSION = Depends(get_db_session)
 LIMIT_QUERY = Query(default=50, le=500)
 OFFSET_QUERY = Query(default=0, ge=0)
@@ -29,7 +34,15 @@ def _organization_response(organization: object) -> OrganizationResponse:
     return OrganizationResponse.model_validate(organization)
 
 
-@router.get("", response_model=list[OrganizationResponse])
+@router.get(
+    "",
+    response_model=list[OrganizationResponse],
+    summary="List organizations",
+    description=(
+        "Return canonical organizations with optional filters on name, "
+        "organization type or parent organization."
+    ),
+)
 def get_organizations(
     name: str | None = None,
     organization_type: str | None = None,
@@ -51,7 +64,13 @@ def get_organizations(
     return [_organization_response(organization) for organization in organizations]
 
 
-@router.get("/{organization_id}", response_model=OrganizationResponse)
+@router.get(
+    "/{organization_id}",
+    response_model=OrganizationResponse,
+    summary="Get organization",
+    description="Return one canonical organization by UUID.",
+    responses={404: COMMON_ERROR_RESPONSES[404]},
+)
 def get_organization(
     organization_id: UUID,
     session: Session = DB_SESSION,
@@ -59,7 +78,17 @@ def get_organization(
     return _organization_response(get_organization_or_404(session, organization_id))
 
 
-@router.post("", response_model=OrganizationResponse, status_code=201)
+@router.post(
+    "",
+    response_model=OrganizationResponse,
+    status_code=201,
+    summary="Create organization",
+    description=(
+        "Create a canonical organization and persist manual provenance "
+        "through the existing application services."
+    ),
+    responses={400: COMMON_ERROR_RESPONSES[400]},
+)
 def post_organization(
     payload: OrganizationCreate,
     session: Session = DB_SESSION,
@@ -68,7 +97,16 @@ def post_organization(
     return _organization_response(organization)
 
 
-@router.patch("/{organization_id}", response_model=OrganizationResponse)
+@router.patch(
+    "/{organization_id}",
+    response_model=OrganizationResponse,
+    summary="Update organization",
+    description="Apply a partial update to a canonical organization.",
+    responses={
+        400: COMMON_ERROR_RESPONSES[400],
+        404: COMMON_ERROR_RESPONSES[404],
+    },
+)
 def patch_organization(
     organization_id: UUID,
     payload: OrganizationUpdate,

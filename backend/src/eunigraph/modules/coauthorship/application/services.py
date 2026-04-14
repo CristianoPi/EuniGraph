@@ -335,7 +335,7 @@ class CoauthorshipGraphService:
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="The persisted coauthorship graph payload file is missing",
             )
-        return json.loads(payload_path.read_text(encoding="utf-8"))
+        return cast(dict[str, Any], json.loads(payload_path.read_text(encoding="utf-8")))
 
     def _build_materialized_graph(
         self,

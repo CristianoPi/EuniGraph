@@ -11,10 +11,33 @@ export class ApiError extends Error {
   }
 }
 
+type QueryValue = string | number | boolean | null | undefined;
+
 function buildUrl(path: string): string {
   const base = getBrowserApiBaseUrl().replace(/\/$/, "");
   const suffix = path.startsWith("/") ? path : `/${path}`;
   return `${base}${suffix}`;
+}
+
+export function buildApiPath(
+  path: string,
+  params?: Record<string, QueryValue>,
+): string {
+  if (!params) {
+    return path;
+  }
+
+  const search = new URLSearchParams();
+
+  for (const [key, value] of Object.entries(params)) {
+    if (value === undefined || value === null || value === "") {
+      continue;
+    }
+    search.set(key, String(value));
+  }
+
+  const queryString = search.toString();
+  return queryString ? `${path}?${queryString}` : path;
 }
 
 export async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {

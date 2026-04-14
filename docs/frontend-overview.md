@@ -82,8 +82,14 @@ The current implementation uses these hooks to prove:
 
 Current routes:
 - `/`: overview and integration status
-- `/dashboard`: workflow-oriented placeholder
-- `/entities`: canonical catalog placeholder with publication preview
+- `/dashboard`: dashboard overview with workflow status, catalog snapshot and quick search
+- `/entities`: catalog hub
+- `/entities/publications`: publication browsing
+- `/entities/publications/[id]`: publication detail
+- `/entities/researchers`: researcher browsing
+- `/entities/researchers/[id]`: researcher detail
+- `/entities/organizations`: organization browsing
+- `/entities/organizations/[id]`: organization detail
 - `/graphs`: graph-oriented placeholder
 
 Supporting routes:
@@ -91,7 +97,26 @@ Supporting routes:
 - `error`
 - `not-found`
 
-## 8. Styling Direction
+## 8. Dashboard and Browsing Experience
+
+The current frontend goes beyond shell-only placeholders.
+
+Dashboard:
+- combines backend health, embeddings status and graph build status
+- composes pragmatic catalog counts from existing list endpoints
+- exposes a quick cross-entity search that reuses backend filters rather than inventing a new client-only search model
+
+Entity browsing:
+- publications can be filtered by title, DOI, year and OpenAIRE id
+- researchers can be filtered by name, ORCID and route-linked organization scope
+- organizations can be filtered by name, type and route-linked parent organization scope
+
+Detail views:
+- publication detail resolves authors, organizations and embedding metadata
+- researcher detail resolves affiliation context
+- organization detail resolves child organizations and primary researchers
+
+## 9. Styling Direction
 
 The frontend intentionally avoids a generic white-purple dashboard look.
 
@@ -103,7 +128,7 @@ Current direction:
 
 This gives the prototype a visual identity without locking the project into a full design system too early.
 
-## 9. Docker and Runtime
+## 10. Docker and Runtime
 
 The Compose profile `ui` is the current entry point for the full local stack:
 - backend
@@ -113,13 +138,13 @@ The Compose profile `ui` is the current entry point for the full local stack:
 
 The frontend container mounts the project workspace and receives the backend URL through environment variables.
 
-## 10. Current Limits
+## 11. Current Limits
 
 The frontend foundation deliberately stops short of:
-- full dashboard composition
-- graph visualization
-- advanced entity browsing
+- advanced graph visualization
 - editing workflows
 - authentication
+- cross-entity aggregated search endpoint support
+- backend-driven total counts for catalog metrics
 
-These are deferred to later issues now that the structural groundwork is in place.
+These are deferred to later issues now that the structural groundwork and first browsing experience are in place.

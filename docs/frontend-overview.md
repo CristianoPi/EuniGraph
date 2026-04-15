@@ -7,8 +7,9 @@ The frontend provides the application shell for EuniGraph:
 - route boundaries for the next product slices
 - a clean integration layer toward the FastAPI backend
 - reusable patterns for loading, error and empty states
+- an administrative console for MVP operations and manual data entry
 
-This first iteration does not attempt to deliver the final dashboard or graph explorer. Its role is to create a stable, documented foundation for the UI work that follows.
+The frontend now includes the main prototype surfaces needed for demo operation: overview, dashboard, canonical browsing, graph exploration and administration.
 
 ## 2. Stack
 
@@ -34,6 +35,7 @@ Main directories:
 - `src/lib/`: frontend config, API client and utilities
 - `src/components/graphs/`: shared graph explorer UI
 - `src/lib/graphs/`: graph payload mapping and explorer-specific helpers
+- `src/components/admin/`: admin console navigation, operations and manual data entry UI
 
 ## 4. Application Shell
 
@@ -74,11 +76,14 @@ Current hooks:
 - coauthorship graph status
 - semantic graph status
 - publication preview
+- admin workflow status and mutations
+- manual entity creation mutations
 
 The current implementation uses these hooks to prove:
 - the shell can read the backend
 - loading, error and empty states are centralized
 - future pages can reuse the same pattern
+- backend-triggered operations stay behind an explicit query/mutation boundary
 
 ## 7. Route Structure
 
@@ -93,6 +98,9 @@ Current routes:
 - `/entities/organizations`: organization browsing
 - `/entities/organizations/[id]`: organization detail
 - `/graphs`: unified graph explorer for coauthorship and semantic layers
+- `/admin`: admin console overview
+- `/admin/operations`: administrative workflow controls
+- `/admin/data-entry`: manual canonical entity creation
 
 Supporting routes:
 - `loading`
@@ -161,3 +169,14 @@ The current design principle is:
 
 Dedicated documentation:
 - [docs/frontend-graph-explorer.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-graph-explorer.md)
+
+## 13. Admin Console
+
+The admin console is a dedicated frontend section for prototype operations and controlled data creation.
+
+It is split into:
+- `Operations`: seed, normalization, embeddings and graph build/status workflows
+- `Manual Data Entry`: creation forms for publications, researchers and organizations
+
+Dedicated documentation:
+- [docs/frontend-admin-console.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-admin-console.md)

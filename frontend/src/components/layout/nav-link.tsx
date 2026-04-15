@@ -15,7 +15,8 @@ type NavLinkProps = {
 
 export function NavLink({ href, label, eyebrow, description }: NavLinkProps) {
   const pathname = usePathname();
-  const active = pathname === href;
+  const active =
+    href === "/" ? pathname === href : pathname === href || pathname.startsWith(`${href}/`);
 
   return (
     <Link

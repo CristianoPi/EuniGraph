@@ -11,6 +11,7 @@ It provides:
 - dashboard and cross-entity quick search
 - browsing and detail routes for publications, researchers and organizations
 - a unified interactive explorer for coauthorship and semantic graphs
+- an admin console for workflow operations and manual canonical data entry
 - a proxy-based integration layer toward the FastAPI backend
 - reusable loading, error and empty states
 
@@ -44,3 +45,4 @@ In Docker the frontend proxy targets:
 
 See [docs/frontend-overview.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-overview.md) for the technical overview.
 See [docs/frontend-graph-explorer.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-graph-explorer.md) for the graph explorer behavior and API integration details.
+See [docs/frontend-admin-console.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-admin-console.md) for the admin console routes, operations and current MVP limits.

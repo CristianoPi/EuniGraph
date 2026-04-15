@@ -16,8 +16,8 @@ export default async function OrganizationDetailPage({
     <div className="space-y-6">
       <PageHeader
         eyebrow="Organization Detail"
-        title="Inspect one canonical organization and its immediate catalog context."
-        description="This detail view emphasizes hierarchy and directly linked researchers, which are the backend relations available today without graph exploration."
+        title="Organization detail."
+        description="Hierarchy, identifiers and linked researchers."
       />
       <OrganizationDetail id={id} />
     </div>

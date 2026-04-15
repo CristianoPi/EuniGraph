@@ -16,8 +16,8 @@ export default async function ResearcherDetailPage({
     <div className="space-y-6">
       <PageHeader
         eyebrow="Researcher Detail"
-        title="Inspect one canonical researcher and the current affiliation context."
-        description="The view stays close to the backend contract: profile fields and affiliation records are shown directly without hidden client-side inference."
+        title="Researcher detail."
+        description="Profile metadata and affiliation records."
       />
       <ResearcherDetail id={id} />
     </div>

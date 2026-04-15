@@ -6,8 +6,8 @@ export default function PublicationsPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Publications"
-        title="Browse the canonical publication catalog."
-        description="Search publications using backend-supported filters and navigate to detail views with authorship, organization links and semantic enrichment context."
+        title="Publications."
+        description="Search records and open authorship, organization and embedding detail."
       />
       <PublicationsBrowser />
     </div>

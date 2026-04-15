@@ -8,18 +8,13 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#102432",
-        mist: "#edf3ef",
-        ember: "#c6653d",
-        pine: "#0f4c5c",
-        moss: "#52796f",
-        sand: "#f5efe6",
+        ink: "#18181b",
       },
       boxShadow: {
-        panel: "0 24px 60px rgba(16, 36, 50, 0.12)",
+        panel: "0 18px 50px rgba(24, 24, 27, 0.07)",
       },
       backgroundImage: {
-        "shell-glow": "radial-gradient(circle at top left, rgba(198, 101, 61, 0.16), transparent 32%), radial-gradient(circle at top right, rgba(15, 76, 92, 0.14), transparent 28%)",
+        "shell-glow": "radial-gradient(circle at top right, rgba(245, 158, 11, 0.1), transparent 26%)",
       },
       fontFamily: {
         sans: ["Space Grotesk", "Avenir Next", "Segoe UI", "sans-serif"],

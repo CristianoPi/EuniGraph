@@ -32,31 +32,31 @@ export function PublicationsPreview() {
       {items.map((publication, index) => (
         <article
           key={publication.id}
-          className="rounded-[1.5rem] border border-[color:var(--border)] bg-white/70 p-5"
+          className="rounded-[1.25rem] border border-[color:var(--border)] bg-white p-5 shadow-panel"
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
                 Publication {index + 1}
               </p>
               <h3 className="text-lg font-semibold text-ink">{publication.title}</h3>
-              <div className="flex flex-wrap gap-2 text-sm text-slate-600">
+              <div className="flex flex-wrap gap-2 text-sm text-zinc-500">
                 {publication.publication_year ? (
-                  <span className="rounded-full bg-slate-100 px-3 py-1">
+                  <span className="rounded-full bg-zinc-100 px-3 py-1">
                     Year {publication.publication_year}
                   </span>
                 ) : null}
                 {publication.doi ? (
-                  <span className="rounded-full bg-slate-100 px-3 py-1">{publication.doi}</span>
+                  <span className="rounded-full bg-zinc-100 px-3 py-1">{publication.doi}</span>
                 ) : null}
                 {publication.openaire_id ? (
-                  <span className="rounded-full bg-slate-100 px-3 py-1">
+                  <span className="rounded-full bg-zinc-100 px-3 py-1">
                     {publication.openaire_id}
                   </span>
                 ) : null}
               </div>
             </div>
-            <span className="rounded-full border border-[color:var(--border)] bg-white px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-500">
+            <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-900">
               Canonical
             </span>
           </div>

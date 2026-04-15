@@ -30,8 +30,8 @@ export function EntitiesNav() {
             className={cn(
               "rounded-full border px-4 py-2 text-sm font-semibold transition",
               active
-                ? "border-pine bg-pine text-white"
-                : "border-[color:var(--border)] bg-white/70 text-slate-700 hover:border-pine/40 hover:text-ink",
+                ? "border-zinc-900 bg-zinc-900 text-white"
+                : "border-[color:var(--border)] bg-white text-zinc-600 hover:border-zinc-300 hover:text-ink",
             )}
           >
             {item.label}

@@ -6,8 +6,8 @@ export default function AdminDataEntryPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Manual Data Entry"
-        title="Create canonical entities without direct API calls."
-        description="These forms call the existing manual entity management APIs and preserve backend provenance through the manual_api_entry source."
+        title="Manual data entry."
+        description="Create canonical records through the existing backend APIs."
       />
 
       <ManualDataEntry />

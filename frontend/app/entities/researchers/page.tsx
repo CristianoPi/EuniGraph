@@ -6,8 +6,8 @@ export default function ResearchersPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Researchers"
-        title="Browse canonical researchers."
-        description="Search by name or ORCID and inspect the currently available affiliation context provided by the backend."
+        title="Researchers."
+        description="Search people and inspect affiliation context."
       />
       <ResearchersBrowser />
     </div>

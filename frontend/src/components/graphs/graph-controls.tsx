@@ -48,8 +48,8 @@ function LayerButton({
       onClick={onClick}
       className={
         active
-          ? "rounded-full border border-pine bg-pine px-4 py-2 text-sm font-semibold text-white"
-          : "rounded-full border border-[color:var(--border)] bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+          ? "rounded-full border border-zinc-900 bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
+          : "rounded-full border border-[color:var(--border)] bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:border-zinc-300"
       }
     >
       {label}
@@ -92,19 +92,19 @@ export function GraphControls({
               value={coauthorship.researcherId}
               onChange={(event) => onCoauthorshipChange("researcherId", event.target.value)}
               placeholder="Researcher UUID focus"
-              className="rounded-[1.2rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+              className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
             />
             <input
               value={coauthorship.organizationId}
               onChange={(event) => onCoauthorshipChange("organizationId", event.target.value)}
               placeholder="Organization UUID"
-              className="rounded-[1.2rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+              className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
             />
             <input
               value={coauthorship.communityId}
               onChange={(event) => onCoauthorshipChange("communityId", event.target.value)}
               placeholder="Community id"
-              className="rounded-[1.2rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+              className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
             />
           </>
         ) : (
@@ -113,19 +113,19 @@ export function GraphControls({
               value={semantic.publicationId}
               onChange={(event) => onSemanticChange("publicationId", event.target.value)}
               placeholder="Publication UUID focus"
-              className="rounded-[1.2rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+              className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
             />
             <input
               value={semantic.organizationId}
               onChange={(event) => onSemanticChange("organizationId", event.target.value)}
               placeholder="Organization UUID"
-              className="rounded-[1.2rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+              className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
             />
             <input
               value={semantic.publicationYear}
               onChange={(event) => onSemanticChange("publicationYear", event.target.value)}
               placeholder="Publication year"
-              className="rounded-[1.2rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+              className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
             />
           </>
         )}
@@ -138,7 +138,7 @@ export function GraphControls({
               : onSemanticChange("maxNodes", event.target.value)
           }
           placeholder="Max nodes"
-          className="rounded-[1.2rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+          className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
         />
         <input
           value={layer === "coauthorship" ? coauthorship.minEdgeWeight : semantic.minEdgeWeight}
@@ -148,12 +148,12 @@ export function GraphControls({
               : onSemanticChange("minEdgeWeight", event.target.value)
           }
           placeholder={layer === "coauthorship" ? "Min edge weight" : "Min similarity weight"}
-          className="rounded-[1.2rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+          className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
         />
-        <div className="rounded-[1.2rem] border border-dashed border-[color:var(--border)] bg-white/55 px-4 py-3 text-sm leading-6 text-slate-600">
+        <div className="rounded-[1rem] border border-dashed border-zinc-200 bg-white px-4 py-3 text-sm leading-6 text-zinc-500">
           {layer === "coauthorship"
-            ? "Researcher nodes, collaboration edges, weight = shared publications."
-            : "Publication nodes, similarity edges, weight = materialized semantic score."}
+            ? "Researchers linked by shared publications."
+            : "Publications linked by semantic score."}
         </div>
       </div>
 
@@ -161,21 +161,21 @@ export function GraphControls({
         <button
           type="button"
           onClick={onApply}
-          className="rounded-full bg-pine px-5 py-3 text-sm font-semibold text-white"
+          className="rounded-full bg-zinc-900 px-5 py-3 text-sm font-semibold text-white"
         >
           Apply filters
         </button>
         <button
           type="button"
           onClick={onResetFilters}
-          className="rounded-full border border-[color:var(--border)] bg-white px-5 py-3 text-sm font-semibold text-slate-700"
+          className="rounded-full border border-[color:var(--border)] bg-white px-5 py-3 text-sm font-semibold text-zinc-700 hover:border-zinc-300"
         >
           Reset filters
         </button>
         <button
           type="button"
           onClick={onResetView}
-          className="rounded-full border border-[color:var(--border)] bg-white px-5 py-3 text-sm font-semibold text-slate-700"
+          className="rounded-full border border-[color:var(--border)] bg-white px-5 py-3 text-sm font-semibold text-zinc-700 hover:border-zinc-300"
         >
           Reset view
         </button>
@@ -183,7 +183,7 @@ export function GraphControls({
           type="button"
           onClick={onCenterSelection}
           disabled={!canCenterSelection}
-          className="rounded-full border border-[color:var(--border)] bg-white px-5 py-3 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-50"
+          className="rounded-full border border-[color:var(--border)] bg-white px-5 py-3 text-sm font-semibold text-zinc-700 hover:border-zinc-300 disabled:cursor-not-allowed disabled:opacity-50"
         >
           Center selection
         </button>

@@ -14,12 +14,12 @@ const adminSections: Array<{
   {
     href: "/admin/operations" as Route,
     label: "Operations",
-    description: "Run seed, normalization, embeddings and graph build workflows.",
+    description: "Seed, normalize, embed, build.",
   },
   {
     href: "/admin/data-entry" as Route,
     label: "Manual Data Entry",
-    description: "Create canonical publications, researchers and organizations.",
+    description: "Create canonical records.",
   },
 ];
 
@@ -36,14 +36,14 @@ export function AdminNav() {
             key={section.href}
             href={section.href}
             className={cn(
-              "rounded-[1.5rem] border px-5 py-4 transition",
+              "rounded-[1.25rem] border px-5 py-4 transition",
               active
-                ? "border-pine bg-pine text-white shadow-panel"
-                : "border-[color:var(--border)] bg-white/70 text-ink hover:border-pine/40",
+                ? "border-zinc-900 bg-zinc-900 text-white shadow-panel"
+                : "border-[color:var(--border)] bg-white text-ink hover:border-zinc-300",
             )}
           >
             <p className="text-base font-semibold">{section.label}</p>
-            <p className={cn("mt-2 text-sm leading-6", active ? "text-white/80" : "text-slate-600")}>
+            <p className={cn("mt-1 text-sm leading-6", active ? "text-white/70" : "text-zinc-500")}>
               {section.description}
             </p>
           </Link>

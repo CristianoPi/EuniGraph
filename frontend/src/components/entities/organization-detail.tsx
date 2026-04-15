@@ -58,7 +58,7 @@ export function OrganizationDetail({ id }: { id: string }) {
     <div className="space-y-5">
       <Panel
         title={organization.data.name}
-        description="Canonical organization detail with available hierarchy and researcher context."
+        description="Identifiers, hierarchy and linked people."
       >
         <DetailList
           items={[
@@ -72,7 +72,7 @@ export function OrganizationDetail({ id }: { id: string }) {
                   href={organization.data.website}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-pine underline underline-offset-4"
+                  className="text-ink underline decoration-amber-400 underline-offset-4"
                 >
                   {organization.data.website}
                 </a>
@@ -94,7 +94,7 @@ export function OrganizationDetail({ id }: { id: string }) {
       <div className="grid gap-5 xl:grid-cols-2">
         <Panel
           title="Primary researchers"
-          description="Researchers whose primary organization currently points to this organization."
+          description="Researchers linked as primary."
         >
           {(primaryResearchers.data ?? []).length > 0 ? (
             <div className="space-y-3">
@@ -102,10 +102,10 @@ export function OrganizationDetail({ id }: { id: string }) {
                 <Link
                   key={item.id}
                   href={researcherRoute(item.id)}
-                  className="block rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 px-4 py-4 text-sm transition hover:border-pine/40"
+                  className="block rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-4 text-sm transition hover:border-zinc-300 hover:shadow-panel"
                 >
                   <p className="font-semibold text-ink">{item.display_name ?? item.full_name}</p>
-                  <p className="mt-1 text-slate-600">{item.orcid ?? "ORCID n/a"}</p>
+                  <p className="mt-1 text-zinc-500">{item.orcid ?? "ORCID n/a"}</p>
                 </Link>
               ))}
             </div>
@@ -121,15 +121,15 @@ export function OrganizationDetail({ id }: { id: string }) {
           )}
           <Link
             href={researchersForOrganizationRoute(id)}
-            className="mt-4 inline-flex rounded-full border border-[color:var(--border)] bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+            className="mt-4 inline-flex rounded-full border border-[color:var(--border)] bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:border-zinc-300"
           >
-            Open researcher browser with this filter
+            Open filtered researchers
           </Link>
         </Panel>
 
         <Panel
           title="Child organizations"
-          description="Organizations currently linked through the parent organization relation."
+          description="Direct hierarchy children."
         >
           {(children.data ?? []).length > 0 ? (
             <div className="space-y-3">
@@ -137,10 +137,10 @@ export function OrganizationDetail({ id }: { id: string }) {
                 <Link
                   key={item.id}
                   href={organizationRoute(item.id)}
-                  className="block rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 px-4 py-4 text-sm transition hover:border-pine/40"
+                  className="block rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-4 text-sm transition hover:border-zinc-300 hover:shadow-panel"
                 >
                   <p className="font-semibold text-ink">{item.name}</p>
-                  <p className="mt-1 text-slate-600">{item.organization_type ?? "Type n/a"}</p>
+                  <p className="mt-1 text-zinc-500">{item.organization_type ?? "Type n/a"}</p>
                 </Link>
               ))}
             </div>
@@ -156,9 +156,9 @@ export function OrganizationDetail({ id }: { id: string }) {
           )}
           <Link
             href={childOrganizationsRoute(id)}
-            className="mt-4 inline-flex rounded-full border border-[color:var(--border)] bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+            className="mt-4 inline-flex rounded-full border border-[color:var(--border)] bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:border-zinc-300"
           >
-            Open organization browser with this filter
+            Open filtered organizations
           </Link>
         </Panel>
       </div>

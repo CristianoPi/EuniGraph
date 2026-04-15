@@ -4,37 +4,37 @@ export const appConfig = {
   name: "EuniGraph",
   subtitle: "Research mapping across the EUNICE network",
   description:
-    "Frontend foundation for navigating canonical entities, semantic workflows and graph materializations exposed by the EuniGraph backend.",
+    "Demo interface for canonical entities, workflows and materialized graphs.",
   navigation: [
     {
       href: "/",
       label: "Overview",
-      eyebrow: "Shell",
-      description: "Prototype status and integration health.",
+      eyebrow: "Home",
+      description: "Status and entry points.",
     },
     {
       href: "/dashboard",
       label: "Dashboard",
-      eyebrow: "Workflows",
-      description: "Operational snapshots from backend pipelines.",
+      eyebrow: "Status",
+      description: "Catalog and workflow snapshot.",
     },
     {
       href: "/entities",
       label: "Entities",
       eyebrow: "Catalog",
-      description: "Canonical publications, researchers and organizations.",
+      description: "Publications, researchers, organizations.",
     },
     {
       href: "/graphs",
       label: "Graphs",
       eyebrow: "Networks",
-      description: "Materialized coauthorship and semantic graph status.",
+      description: "Coauthorship and semantic layers.",
     },
     {
       href: "/admin" as Route,
       label: "Admin",
       eyebrow: "Console",
-      description: "Operational workflows and manual canonical data entry.",
+      description: "Operations and manual entry.",
     },
   ],
 } as const;

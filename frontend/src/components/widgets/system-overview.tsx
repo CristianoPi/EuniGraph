@@ -20,9 +20,15 @@ function StatusValue({
   tone?: "default" | "good";
 }) {
   return (
-    <div className="rounded-[1.5rem] border border-[color:var(--border)] bg-white/70 p-4">
-      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">{label}</p>
-      <p className={tone === "good" ? "mt-2 text-lg font-semibold text-pine" : "mt-2 text-lg font-semibold text-ink"}>
+    <div className="rounded-[1.15rem] border border-[color:var(--border)] bg-white p-4 shadow-panel">
+      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">{label}</p>
+      <p
+        className={
+          tone === "good"
+            ? "mt-2 text-lg font-semibold text-ink"
+            : "mt-2 text-lg font-semibold text-ink"
+        }
+      >
         {value}
       </p>
     </div>
@@ -42,7 +48,7 @@ export function SystemOverview() {
   if (health.isError || embeddings.isError || coauthorship.isError || semantic.isError) {
     return (
       <ErrorState
-        message="The interface is running, but at least one backend integration request failed. Check the backend services and the current local runtime."
+        message="At least one backend integration request failed. Check the running services."
       />
     );
   }
@@ -113,8 +119,8 @@ export function GraphStatusPanels() {
   return (
     <div className="grid gap-5 xl:grid-cols-2">
       <Panel
-        title="Coauthorship Graph"
-        description="Materialized researcher-researcher graph derived from canonical authorship relations."
+        title="Coauthorship"
+        description="Researcher graph."
       >
         <dl className="grid gap-4 sm:grid-cols-2">
           <StatusValue label="Status" value={coauthorshipData.status} />
@@ -127,8 +133,8 @@ export function GraphStatusPanels() {
         </dl>
       </Panel>
       <Panel
-        title="Semantic Graph"
-        description="Materialized publication-publication graph derived from Qdrant nearest neighbors."
+        title="Semantic"
+        description="Publication similarity graph."
       >
         <dl className="grid gap-4 sm:grid-cols-2">
           <StatusValue label="Status" value={semanticData.status} />

@@ -4,15 +4,15 @@
 
 :root {
   color-scheme: light;
-  --background: #f5efe6;
-  --foreground: #102432;
-  --panel: rgba(255, 255, 255, 0.72);
-  --panel-strong: rgba(255, 255, 255, 0.9);
-  --border: rgba(16, 36, 50, 0.12);
-  --accent: #0f4c5c;
-  --accent-soft: rgba(15, 76, 92, 0.12);
-  --muted: #5e7079;
-  --danger: #b54a2f;
+  --background: #fafafa;
+  --foreground: #18181b;
+  --panel: rgba(255, 255, 255, 0.86);
+  --panel-strong: rgba(255, 255, 255, 0.96);
+  --border: rgba(24, 24, 27, 0.1);
+  --accent: #18181b;
+  --accent-soft: rgba(245, 158, 11, 0.14);
+  --muted: #71717a;
+  --danger: #b42318;
 }
 
 * {
@@ -22,9 +22,8 @@
 html {
   min-height: 100%;
   background:
-    radial-gradient(circle at top left, rgba(198, 101, 61, 0.14), transparent 26%),
-    radial-gradient(circle at top right, rgba(15, 76, 92, 0.12), transparent 22%),
-    linear-gradient(180deg, #f6f0e7 0%, #edf3ef 100%);
+    radial-gradient(circle at top right, rgba(245, 158, 11, 0.1), transparent 24%),
+    linear-gradient(180deg, #ffffff 0%, #f7f7f8 100%);
 }
 
 body {
@@ -48,5 +47,5 @@ select {
 }
 
 ::selection {
-  background: rgba(198, 101, 61, 0.18);
+  background: rgba(245, 158, 11, 0.22);
 }

@@ -48,7 +48,7 @@ export function ResearcherDetail({ id }: { id: string }) {
     <div className="space-y-5">
       <Panel
         title={researcher.data.display_name ?? researcher.data.full_name}
-        description="Canonical researcher detail with current profile metadata and recorded affiliations."
+        description="Profile metadata and identifiers."
       >
         <DetailList
           items={[
@@ -65,7 +65,7 @@ export function ResearcherDetail({ id }: { id: string }) {
                   href={researcher.data.profile_url}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-pine underline underline-offset-4"
+                  className="text-ink underline decoration-amber-400 underline-offset-4"
                 >
                   {researcher.data.profile_url}
                 </a>
@@ -83,7 +83,7 @@ export function ResearcherDetail({ id }: { id: string }) {
 
       <Panel
         title="Affiliations"
-        description="Affiliation data is exposed by the canonical researcher-affiliation relation."
+        description="Recorded organization links."
       >
         {(affiliations.data ?? []).length > 0 ? (
           <div className="space-y-3">
@@ -91,16 +91,16 @@ export function ResearcherDetail({ id }: { id: string }) {
               <Link
                 key={item.id}
                 href={organizationRoute(item.organization_id)}
-                className="block rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 px-4 py-4 text-sm transition hover:border-pine/40"
+                className="block rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-4 text-sm transition hover:border-zinc-300 hover:shadow-panel"
               >
                 <p className="font-semibold text-ink">
                   {organizationNameById.get(item.organization_id) ?? item.organization_id}
                 </p>
-                <p className="mt-1 text-slate-600">
+                <p className="mt-1 text-zinc-500">
                   {item.role_title ?? "Role not specified"}
                   {item.is_primary ? " · primary" : ""}
                 </p>
-                <p className="mt-1 text-slate-500">
+                <p className="mt-1 text-zinc-400">
                   {item.start_date ?? "Start n/a"} - {item.end_date ?? "Present"}
                 </p>
               </Link>

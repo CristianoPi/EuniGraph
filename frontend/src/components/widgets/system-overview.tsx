@@ -66,8 +66,8 @@ export function SystemOverview() {
       <StatusValue
         label="Embeddings"
         value={
-          embeddingsData.collection_exists
-            ? `${embeddingsData.provider} · ${embeddingsData.points_count ?? 0} points`
+          embeddingsData.qdrant_collection_exists
+            ? `${embeddingsData.provider} · ${embeddingsData.qdrant_points_count} points`
             : "Collection not built yet"
         }
       />

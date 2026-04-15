@@ -1,3 +1,5 @@
+import type { Route } from "next";
+
 export const appConfig = {
   name: "EuniGraph",
   subtitle: "Research mapping across the EUNICE network",
@@ -27,6 +29,12 @@ export const appConfig = {
       label: "Graphs",
       eyebrow: "Networks",
       description: "Materialized coauthorship and semantic graph status.",
+    },
+    {
+      href: "/admin" as Route,
+      label: "Admin",
+      eyebrow: "Console",
+      description: "Operational workflows and manual canonical data entry.",
     },
   ],
 } as const;

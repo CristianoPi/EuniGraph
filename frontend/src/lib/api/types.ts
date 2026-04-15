@@ -122,8 +122,12 @@ export type EmbeddingsStatus = {
   enabled: boolean;
   provider: string;
   model: string;
-  version: string;
-  collection: string;
-  collection_exists: boolean;
-  points_count?: number | null;
+  embedding_version: string;
+  qdrant_collection: string;
+  qdrant_collection_exists: boolean;
+  qdrant_points_count: number;
+  qdrant_collection_status?: string | null;
+  total_publications: number;
+  active_embeddings_count: number;
+  latest_embedding_updated_at?: string | null;
 };

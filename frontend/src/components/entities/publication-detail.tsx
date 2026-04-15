@@ -69,7 +69,7 @@ export function PublicationDetail({ id }: { id: string }) {
     <div className="space-y-5">
       <Panel
         title={publication.data.title}
-        description="Canonical publication detail with related authors, organizations and embedding metadata when available."
+        description="Metadata and linked context."
       >
         <DetailList
           items={[
@@ -84,11 +84,11 @@ export function PublicationDetail({ id }: { id: string }) {
           ]}
         />
         {publication.data.abstract ? (
-          <div className="mt-5 rounded-[1.5rem] border border-[color:var(--border)] bg-white/70 p-5">
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
+          <div className="mt-5 rounded-[1.25rem] border border-[color:var(--border)] bg-white p-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
               Abstract
             </p>
-            <p className="mt-3 text-sm leading-7 text-slate-700">{publication.data.abstract}</p>
+            <p className="mt-3 text-sm leading-7 text-zinc-600">{publication.data.abstract}</p>
           </div>
         ) : null}
       </Panel>
@@ -96,7 +96,7 @@ export function PublicationDetail({ id }: { id: string }) {
       <div className="grid gap-5 xl:grid-cols-2">
         <Panel
           title="Authors"
-          description="Authorship links come from the canonical publication-author relation."
+          description="Canonical authorship links."
         >
           {(authors.data ?? []).length > 0 ? (
             <div className="space-y-3">
@@ -104,7 +104,7 @@ export function PublicationDetail({ id }: { id: string }) {
                 <Link
                   key={author.id}
                   href={researcherRoute(author.researcher_id)}
-                  className="flex items-start justify-between rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 px-4 py-4 text-sm transition hover:border-pine/40"
+                  className="flex items-start justify-between rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-4 text-sm transition hover:border-zinc-300 hover:shadow-panel"
                 >
                   <div>
                     <p className="font-semibold text-ink">
@@ -112,7 +112,7 @@ export function PublicationDetail({ id }: { id: string }) {
                         authorNameById.get(author.researcher_id) ??
                         author.researcher_id}
                     </p>
-                    <p className="mt-1 text-slate-600">
+                    <p className="mt-1 text-zinc-500">
                       Position {author.author_position}
                       {author.is_corresponding ? " · corresponding" : ""}
                     </p>
@@ -130,7 +130,7 @@ export function PublicationDetail({ id }: { id: string }) {
 
         <Panel
           title="Organizations"
-          description="Organizations linked to the publication through canonical publication-organization relations."
+          description="Linked organizations."
         >
           {(organizations.data ?? []).length > 0 ? (
             <div className="space-y-3">
@@ -138,12 +138,12 @@ export function PublicationDetail({ id }: { id: string }) {
                 <Link
                   key={item.id}
                   href={organizationRoute(item.organization_id)}
-                  className="block rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 px-4 py-4 text-sm transition hover:border-pine/40"
+                  className="block rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-4 text-sm transition hover:border-zinc-300 hover:shadow-panel"
                 >
                   <p className="font-semibold text-ink">
                     {organizationNameById.get(item.organization_id) ?? item.organization_id}
                   </p>
-                  <p className="mt-1 text-slate-600">{item.relation_type}</p>
+                  <p className="mt-1 text-zinc-500">{item.relation_type}</p>
                 </Link>
               ))}
             </div>
@@ -158,7 +158,7 @@ export function PublicationDetail({ id }: { id: string }) {
 
       <Panel
         title="Semantic enrichment"
-        description="Embedding metadata is optional and appears only if the publication has already been embedded."
+        description="Embedding metadata when available."
       >
         {embedding.isLoading ? (
           <LoadingState label="Checking publication embedding metadata..." />

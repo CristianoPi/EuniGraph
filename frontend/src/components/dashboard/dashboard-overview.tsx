@@ -18,18 +18,18 @@ const quickLinks: Array<{
 }> = [
   {
     href: "/entities/publications",
-    title: "Browse publications",
-    description: "Search by title, DOI, year and drill down into canonical metadata.",
+    title: "Publications",
+    description: "Search title, DOI or year.",
   },
   {
     href: "/entities/researchers",
-    title: "Browse researchers",
-    description: "Inspect canonical researchers, ORCID data and affiliation context.",
+    title: "Researchers",
+    description: "Inspect names and affiliations.",
   },
   {
     href: "/entities/organizations",
-    title: "Browse organizations",
-    description: "Navigate universities, departments and linked canonical entities.",
+    title: "Organizations",
+    description: "Navigate units and hierarchy.",
   },
 ];
 
@@ -53,17 +53,17 @@ export function DashboardOverview() {
           <StatCard
             label="Publications"
             value={formatCappedCount(counts.data.publications, counts.data.limit)}
-            hint={`Count composed from the publication list endpoint, capped at ${counts.data.limit}.`}
+            hint={`Capped at ${counts.data.limit}.`}
           />
           <StatCard
             label="Researchers"
             value={formatCappedCount(counts.data.researchers, counts.data.limit)}
-            hint={`Count composed from the researcher list endpoint, capped at ${counts.data.limit}.`}
+            hint={`Capped at ${counts.data.limit}.`}
           />
           <StatCard
             label="Organizations"
             value={formatCappedCount(counts.data.organizations, counts.data.limit)}
-            hint={`Count composed from the organization list endpoint, capped at ${counts.data.limit}.`}
+            hint={`Capped at ${counts.data.limit}.`}
           />
         </div>
       ) : (
@@ -75,31 +75,31 @@ export function DashboardOverview() {
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
         <Panel
-          title="Catalog entry points"
-          description="The frontend now makes the canonical catalog navigable without forcing the user into graph views first."
+          title="Catalog"
+          description="Direct browsing paths."
         >
           <div className="grid gap-3">
             {quickLinks.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-[1.5rem] border border-[color:var(--border)] bg-white/70 p-4 transition hover:border-pine/40 hover:bg-white"
+                className="rounded-[1.15rem] border border-[color:var(--border)] bg-white p-4 transition hover:border-zinc-300 hover:shadow-panel"
               >
                 <p className="text-base font-semibold text-ink">{item.title}</p>
-                <p className="mt-2 text-sm leading-6 text-slate-600">{item.description}</p>
+                <p className="mt-1 text-sm leading-6 text-zinc-500">{item.description}</p>
               </Link>
             ))}
           </div>
         </Panel>
 
         <Panel
-          title="Prototype orientation"
-          description="The dashboard deliberately combines stable backend layers rather than inventing client-side domain rules."
+          title="Source model"
+          description="Read-only frontend composition."
         >
-          <ul className="space-y-3 text-sm leading-7 text-slate-700">
-            <li>Canonical entities come from PostgreSQL-backed APIs.</li>
-            <li>Workflow panels reuse existing embeddings and graph status endpoints.</li>
-            <li>Graph exploration remains a separate concern for later issues.</li>
+          <ul className="space-y-2 text-sm leading-6 text-zinc-600">
+            <li>Catalog data comes from canonical APIs.</li>
+            <li>Workflow cards reuse status endpoints.</li>
+            <li>Graph exploration stays on `/graphs`.</li>
           </ul>
         </Panel>
       </div>

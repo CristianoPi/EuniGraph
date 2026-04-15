@@ -60,23 +60,23 @@ export function OrganizationsBrowser() {
   return (
     <div className="space-y-5">
       <Panel
-        title="Organization browsing"
-        description="Search organizations by name or type. Parent-child navigation is supported through route-linked filters."
+        title="Filters"
+        description="Name, type or parent organization."
       >
         <form onSubmit={handleSubmit} className="grid gap-4 xl:grid-cols-3">
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Organization name"
-            className="rounded-[1.25rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+            className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
           />
           <input
             value={organizationType}
             onChange={(event) => setOrganizationType(event.target.value)}
             placeholder="Organization type"
-            className="rounded-[1.25rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+            className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
           />
-          <div className="rounded-[1.25rem] border border-dashed border-[color:var(--border)] bg-white/50 px-4 py-3 text-sm text-slate-600">
+          <div className="rounded-[1rem] border border-dashed border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-500">
             {activeParent
               ? `Parent filter active: ${activeParent}`
               : "Parent organization filtering becomes available from detail views."}
@@ -84,14 +84,14 @@ export function OrganizationsBrowser() {
           <div className="flex gap-3 xl:col-span-3">
             <button
               type="submit"
-              className="rounded-full bg-pine px-5 py-3 text-sm font-semibold text-white"
+              className="rounded-full bg-zinc-900 px-5 py-3 text-sm font-semibold text-white"
             >
               Apply filters
             </button>
             <button
               type="button"
               onClick={resetFilters}
-              className="rounded-full border border-[color:var(--border)] bg-white px-5 py-3 text-sm font-semibold text-slate-700"
+              className="rounded-full border border-[color:var(--border)] bg-white px-5 py-3 text-sm font-semibold text-zinc-700"
             >
               Reset
             </button>
@@ -114,31 +114,31 @@ export function OrganizationsBrowser() {
             <Link
               key={organization.id}
               href={organizationRoute(organization.id)}
-              className="rounded-[1.75rem] border border-[color:var(--border)] bg-[color:var(--panel)] p-5 shadow-panel transition hover:border-pine/40"
+              className="rounded-[1.35rem] border border-[color:var(--border)] bg-white p-5 shadow-panel transition hover:border-zinc-300"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <h2 className="text-xl font-semibold text-ink">{organization.name}</h2>
-                  <span className="rounded-full border border-[color:var(--border)] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                    Detail
+                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-900">
+                    Open
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-2 text-sm text-slate-600">
+                <div className="flex flex-wrap gap-2 text-sm text-zinc-500">
                   {organization.organization_type ? (
-                    <span className="rounded-full bg-white/80 px-3 py-1">
+                    <span className="rounded-full bg-zinc-100 px-3 py-1">
                       {organization.organization_type}
                     </span>
                   ) : null}
                   {organization.country_code ? (
-                    <span className="rounded-full bg-white/80 px-3 py-1">
+                    <span className="rounded-full bg-zinc-100 px-3 py-1">
                       {organization.country_code}
                     </span>
                   ) : null}
                   {organization.city ? (
-                    <span className="rounded-full bg-white/80 px-3 py-1">{organization.city}</span>
+                    <span className="rounded-full bg-zinc-100 px-3 py-1">{organization.city}</span>
                   ) : null}
                 </div>
-                <p className="text-sm leading-7 text-slate-700">
+                <p className="text-sm leading-7 text-zinc-600">
                   Normalized name: {organization.normalized_name}
                 </p>
               </div>

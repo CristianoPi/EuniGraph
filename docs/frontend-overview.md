@@ -130,15 +130,16 @@ Detail views:
 
 ## 9. Styling Direction
 
-The frontend intentionally avoids a generic white-purple dashboard look.
+The frontend uses a restrained demo-oriented visual system.
 
 Current direction:
-- warm sand and mist background
-- pine and ember accents
-- soft glass-like panels
-- compact but editorial typography
+- white and near-white backgrounds as the dominant surface
+- zinc/gray tones for hierarchy, text, borders and neutral structure
+- amber/yellow only as a sparse accent for highlights, selected states and small indicators
+- light cards with thin borders and very soft shadows
+- concise headings and reduced explanatory copy
 
-This gives the prototype a visual identity without locking the project into a full design system too early.
+This keeps the prototype clean and professional without introducing a heavy design system.
 
 ## 10. Docker and Runtime
 

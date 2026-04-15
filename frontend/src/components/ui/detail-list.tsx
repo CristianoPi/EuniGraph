@@ -13,9 +13,9 @@ export function DetailList({ items }: DetailListProps) {
       {items.map((item) => (
         <div
           key={item.label}
-          className="rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 p-4"
+          className="rounded-[1rem] border border-[color:var(--border)] bg-white p-4"
         >
-          <dt className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+          <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
             {item.label}
           </dt>
           <dd className="mt-2 text-sm leading-7 text-ink">{item.value}</dd>

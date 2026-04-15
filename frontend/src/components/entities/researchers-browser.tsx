@@ -58,23 +58,23 @@ export function ResearchersBrowser() {
   return (
     <div className="space-y-5">
       <Panel
-        title="Researcher browsing"
-        description="Search by name or ORCID. Organization-scoped browsing is also supported through route-linked filters."
+        title="Filters"
+        description="Name, ORCID or linked organization."
       >
         <form onSubmit={handleSubmit} className="grid gap-4 xl:grid-cols-3">
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
             placeholder="Researcher name"
-            className="rounded-[1.25rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+            className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
           />
           <input
             value={orcid}
             onChange={(event) => setOrcid(event.target.value)}
             placeholder="ORCID"
-            className="rounded-[1.25rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+            className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
           />
-          <div className="rounded-[1.25rem] border border-dashed border-[color:var(--border)] bg-white/50 px-4 py-3 text-sm text-slate-600">
+          <div className="rounded-[1rem] border border-dashed border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-500">
             {activeOrganization
               ? `Organization filter active: ${activeOrganization}`
               : "Organization filter becomes available from organization detail pages."}
@@ -82,14 +82,14 @@ export function ResearchersBrowser() {
           <div className="flex gap-3 xl:col-span-3">
             <button
               type="submit"
-              className="rounded-full bg-pine px-5 py-3 text-sm font-semibold text-white"
+              className="rounded-full bg-zinc-900 px-5 py-3 text-sm font-semibold text-white"
             >
               Apply filters
             </button>
             <button
               type="button"
               onClick={resetFilters}
-              className="rounded-full border border-[color:var(--border)] bg-white px-5 py-3 text-sm font-semibold text-slate-700"
+              className="rounded-full border border-[color:var(--border)] bg-white px-5 py-3 text-sm font-semibold text-zinc-700"
             >
               Reset
             </button>
@@ -112,26 +112,26 @@ export function ResearchersBrowser() {
             <Link
               key={researcher.id}
               href={researcherRoute(researcher.id)}
-              className="rounded-[1.75rem] border border-[color:var(--border)] bg-[color:var(--panel)] p-5 shadow-panel transition hover:border-pine/40"
+              className="rounded-[1.35rem] border border-[color:var(--border)] bg-white p-5 shadow-panel transition hover:border-zinc-300"
             >
               <div className="space-y-3">
                 <div className="flex items-start justify-between gap-3">
                   <h2 className="text-xl font-semibold text-ink">
                     {researcher.display_name ?? researcher.full_name}
                   </h2>
-                  <span className="rounded-full border border-[color:var(--border)] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                    Detail
+                  <span className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-900">
+                    Open
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-2 text-sm text-slate-600">
+                <div className="flex flex-wrap gap-2 text-sm text-zinc-500">
                   {researcher.orcid ? (
-                    <span className="rounded-full bg-white/80 px-3 py-1">{researcher.orcid}</span>
+                    <span className="rounded-full bg-zinc-100 px-3 py-1">{researcher.orcid}</span>
                   ) : null}
                   {researcher.email ? (
-                    <span className="rounded-full bg-white/80 px-3 py-1">{researcher.email}</span>
+                    <span className="rounded-full bg-zinc-100 px-3 py-1">{researcher.email}</span>
                   ) : null}
                 </div>
-                <p className="text-sm leading-7 text-slate-700">
+                <p className="text-sm leading-7 text-zinc-600">
                   Normalized name: {researcher.normalized_name}
                 </p>
               </div>

@@ -49,7 +49,7 @@ export function GraphDetailPanel({
       return (
         <Panel
           title={node.full_name}
-          description="Researcher node detail from the materialized coauthorship graph."
+          description="Coauthorship node."
         >
           <DetailList
             items={[
@@ -65,19 +65,19 @@ export function GraphDetailPanel({
             <button
               type="button"
               onClick={onFocusSelectedNode}
-              className="rounded-full bg-pine px-4 py-2 text-sm font-semibold text-white"
+              className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
             >
               Focus neighborhood
             </button>
             <Link
               href={researcherRoute(node.id)}
-              className="rounded-full border border-[color:var(--border)] bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+              className="rounded-full border border-[color:var(--border)] bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:border-zinc-300"
             >
-              Open researcher detail
+              Open researcher
             </Link>
           </div>
           {metrics ? (
-            <div className="mt-5 rounded-[1.4rem] border border-[color:var(--border)] bg-white/70 p-4 text-sm text-slate-700">
+            <div className="mt-5 rounded-[1rem] border border-[color:var(--border)] bg-white p-4 text-sm text-zinc-600">
               <p className="font-semibold text-ink">Neighbor snapshot</p>
               <p className="mt-2 leading-6">
                 {metrics.neighbors.length} neighbors and {metrics.incident_edges.length} incident
@@ -93,7 +93,7 @@ export function GraphDetailPanel({
     return (
       <Panel
         title={node.title}
-        description="Publication node detail from the materialized semantic similarity graph."
+        description="Semantic node."
       >
         <DetailList
           items={[
@@ -105,7 +105,7 @@ export function GraphDetailPanel({
             { label: "Venue", value: node.venue_name ?? node.journal_name ?? "n/a" },
           ]}
         />
-        <div className="mt-5 rounded-[1.4rem] border border-[color:var(--border)] bg-white/70 p-4 text-sm text-slate-700">
+        <div className="mt-5 rounded-[1rem] border border-[color:var(--border)] bg-white p-4 text-sm text-zinc-600">
           <p className="font-semibold text-ink">Authors</p>
           <p className="mt-2 leading-6">
             {node.authors.length > 0 ? node.authors.join(", ") : "No author list available"}
@@ -115,19 +115,19 @@ export function GraphDetailPanel({
           <button
             type="button"
             onClick={onFocusSelectedNode}
-            className="rounded-full bg-pine px-4 py-2 text-sm font-semibold text-white"
+            className="rounded-full bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
           >
             Focus neighborhood
           </button>
           <Link
             href={publicationRoute(node.id)}
-            className="rounded-full border border-[color:var(--border)] bg-white px-4 py-2 text-sm font-semibold text-slate-700"
+            className="rounded-full border border-[color:var(--border)] bg-white px-4 py-2 text-sm font-semibold text-zinc-700 hover:border-zinc-300"
           >
-            Open publication detail
+            Open publication
           </Link>
         </div>
         {metrics ? (
-          <div className="mt-5 rounded-[1.4rem] border border-[color:var(--border)] bg-white/70 p-4 text-sm text-slate-700">
+          <div className="mt-5 rounded-[1rem] border border-[color:var(--border)] bg-white p-4 text-sm text-zinc-600">
             <p className="font-semibold text-ink">Neighbor snapshot</p>
             <p className="mt-2 leading-6">
               {metrics.neighbors.length} neighbors and {metrics.incident_edges.length} incident
@@ -145,7 +145,7 @@ export function GraphDetailPanel({
       return (
         <Panel
           title={`${sourceLabel} × ${targetLabel}`}
-          description="Coauthorship edge detail from the current materialized payload."
+          description="Coauthorship edge."
         >
           <DetailList
             items={[
@@ -163,7 +163,7 @@ export function GraphDetailPanel({
     return (
       <Panel
         title={`${sourceLabel} ⇄ ${targetLabel}`}
-        description="Semantic similarity edge detail from the current materialized payload."
+        description="Semantic edge."
       >
         <DetailList
           items={[
@@ -180,7 +180,7 @@ export function GraphDetailPanel({
   return (
     <EmptyState
       title={`No ${layer === "coauthorship" ? "researcher" : "publication"} selected`}
-      message="Select a node or edge on the graph canvas to inspect contextual details and jump into the corresponding entity view."
+      message="Select a node or edge to inspect details."
     />
   );
 }

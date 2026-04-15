@@ -33,26 +33,26 @@ export function QuickSearch() {
 
   return (
     <Panel
-      title="Quick cross-entity search"
-      description="A single text query mapped to the existing backend filters for publications, researchers and organizations."
+      title="Quick search"
+      description="One query across the catalog."
     >
       <div className="space-y-5">
         <label className="block">
-          <span className="text-xs font-semibold uppercase tracking-[0.24em] text-slate-500">
-            Search query
+          <span className="text-xs font-semibold uppercase tracking-[0.22em] text-zinc-500">
+            Query
           </span>
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Try a title fragment, researcher name or organization name"
-            className="mt-3 w-full rounded-[1.25rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm text-ink outline-none transition focus:border-pine"
+            placeholder="Title, researcher or organization"
+            className="mt-3 w-full rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm text-ink outline-none transition focus:border-zinc-900"
           />
         </label>
 
         {!enabled ? (
           <EmptyState
             title="Type at least two characters"
-            message="The search box fans out to the three canonical entity families using the filters already supported by the backend."
+            message="Results appear across publications, researchers and organizations."
           />
         ) : isLoading ? (
           <LoadingState label="Searching publications, researchers and organizations..." />
@@ -67,10 +67,10 @@ export function QuickSearch() {
                   <Link
                     key={item.id}
                     href={routeForPublication(item.id)}
-                    className="block rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 px-4 py-3 text-sm text-slate-700 transition hover:border-pine/40"
+                    className="block rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm text-zinc-700 transition hover:border-zinc-300 hover:shadow-panel"
                   >
                     <p className="font-semibold text-ink">{item.title}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                    <p className="mt-1 text-xs uppercase tracking-[0.18em] text-zinc-500">
                       {item.publication_year ?? "Year n/a"}
                     </p>
                   </Link>
@@ -78,7 +78,7 @@ export function QuickSearch() {
               ) : (
                 <EmptyState
                   title="No publication matches"
-                  message="The publication list endpoint did not return matches for this query."
+                  message="No matches for this query."
                 />
               )}
             </div>
@@ -90,10 +90,10 @@ export function QuickSearch() {
                   <Link
                     key={item.id}
                     href={routeForResearcher(item.id)}
-                    className="block rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 px-4 py-3 text-sm text-slate-700 transition hover:border-pine/40"
+                    className="block rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm text-zinc-700 transition hover:border-zinc-300 hover:shadow-panel"
                   >
                     <p className="font-semibold text-ink">{item.display_name ?? item.full_name}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                    <p className="mt-1 text-xs uppercase tracking-[0.18em] text-zinc-500">
                       {item.orcid ?? "ORCID n/a"}
                     </p>
                   </Link>
@@ -101,7 +101,7 @@ export function QuickSearch() {
               ) : (
                 <EmptyState
                   title="No researcher matches"
-                  message="The researcher list endpoint did not return matches for this query."
+                  message="No matches for this query."
                 />
               )}
             </div>
@@ -113,10 +113,10 @@ export function QuickSearch() {
                   <Link
                     key={item.id}
                     href={routeForOrganization(item.id)}
-                    className="block rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 px-4 py-3 text-sm text-slate-700 transition hover:border-pine/40"
+                    className="block rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm text-zinc-700 transition hover:border-zinc-300 hover:shadow-panel"
                   >
                     <p className="font-semibold text-ink">{item.name}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.18em] text-slate-500">
+                    <p className="mt-1 text-xs uppercase tracking-[0.18em] text-zinc-500">
                       {item.organization_type ?? "Type n/a"}
                     </p>
                   </Link>
@@ -124,7 +124,7 @@ export function QuickSearch() {
               ) : (
                 <EmptyState
                   title="No organization matches"
-                  message="The organization list endpoint did not return matches for this query."
+                  message="No matches for this query."
                 />
               )}
             </div>

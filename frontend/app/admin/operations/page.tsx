@@ -6,8 +6,8 @@ export default function AdminOperationsPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Admin Operations"
-        title="Run backend workflows from one controlled console."
-        description="Seed, normalization, embeddings and graph build operations are grouped here because they change system state or materialized artifacts."
+        title="Workflow controls."
+        description="Seed, normalize, embed and rebuild graphs from one place."
       />
 
       <OperationsConsole />

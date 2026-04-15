@@ -16,9 +16,9 @@ import {
 import { ApiError } from "@/lib/api/client";
 
 const inputClass =
-  "rounded-[1.25rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine";
+  "rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900";
 const textareaClass = `${inputClass} min-h-32 resize-y`;
-const buttonClass = "rounded-full bg-pine px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50";
+const buttonClass = "rounded-full bg-zinc-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50";
 
 type PublicationFormValues = {
   title: string;
@@ -107,11 +107,11 @@ function Field({
 }) {
   return (
     <label className="space-y-2">
-      <span className="block text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+      <span className="block text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
         {label}
       </span>
       {children}
-      {hint ? <span className="block text-xs leading-5 text-slate-500">{hint}</span> : null}
+      {hint ? <span className="block text-xs leading-5 text-zinc-500">{hint}</span> : null}
     </label>
   );
 }
@@ -141,11 +141,11 @@ function CreateFeedback({
 
   if (isSuccess) {
     return (
-      <div className="rounded-3xl border border-pine/20 bg-pine/10 p-5 text-sm leading-6 text-slate-700">
-        <p className="font-semibold text-pine">{success}</p>
+      <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-zinc-700">
+        <p className="font-semibold text-zinc-900">{success}</p>
         {href ? (
-          <Link href={href} className="mt-3 inline-flex font-semibold text-pine underline">
-            Open detail view
+          <Link href={href} className="mt-3 inline-flex font-semibold text-ink underline decoration-amber-400 underline-offset-4">
+            Open detail
           </Link>
         ) : null}
       </div>
@@ -189,8 +189,8 @@ function PublicationForm() {
 
   return (
     <Panel
-      title="Create Publication"
-      description="Create one canonical publication through the existing manual entity API."
+      title="Publication"
+      description="Create one canonical record."
     >
       <form
         onSubmit={handleSubmit((values) =>
@@ -305,8 +305,8 @@ function ResearcherForm() {
 
   return (
     <Panel
-      title="Create Researcher"
-      description="Create one canonical researcher. Affiliation links can be added in a later UI iteration."
+      title="Researcher"
+      description="Create one canonical person."
     >
       <form
         onSubmit={handleSubmit((values) =>
@@ -399,8 +399,8 @@ function OrganizationForm() {
 
   return (
     <Panel
-      title="Create Organization"
-      description="Create one canonical organization such as a university, department or institute."
+      title="Organization"
+      description="Create one canonical unit."
     >
       <form
         onSubmit={handleSubmit((values) =>

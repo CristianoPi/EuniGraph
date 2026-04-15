@@ -7,8 +7,8 @@ export default function DashboardPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Dashboard"
-        title="A dashboard that makes the dataset readable without opening a graph."
-        description="Use the dashboard to orient yourself across catalog size, workflow state and quick entry points into the main sections."
+        title="System snapshot."
+        description="Catalog counts, workflow state and quick lookup in one place."
       />
 
       <DashboardOverview />

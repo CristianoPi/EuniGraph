@@ -27,11 +27,11 @@ import {
 } from "@/hooks/use-admin";
 
 const inputClass =
-  "rounded-[1.25rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine";
+  "rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900";
 const textareaClass = `${inputClass} min-h-28 resize-y`;
-const buttonClass = "rounded-full bg-pine px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50";
+const buttonClass = "rounded-full bg-zinc-900 px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50";
 const secondaryButtonClass =
-  "rounded-full border border-[color:var(--border)] bg-white px-5 py-3 text-sm font-semibold text-slate-700 disabled:cursor-not-allowed disabled:opacity-50";
+  "rounded-full border border-[color:var(--border)] bg-white px-5 py-3 text-sm font-semibold text-zinc-700 hover:border-zinc-300 disabled:cursor-not-allowed disabled:opacity-50";
 const dangerButtonClass =
   "rounded-full bg-[color:var(--danger)] px-5 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-50";
 
@@ -117,8 +117,8 @@ function StatusGrid({ items }: { items: Array<{ label: string; value: string | n
   return (
     <dl className="grid gap-3 sm:grid-cols-2">
       {items.map((item) => (
-        <div key={item.label} className="rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 p-4">
-          <dt className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+        <div key={item.label} className="rounded-[1rem] border border-[color:var(--border)] bg-white p-4">
+          <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
             {item.label}
           </dt>
           <dd className="mt-2 break-words text-sm font-semibold text-ink">{item.value}</dd>
@@ -151,8 +151,8 @@ function MutationFeedback({
 
   if (isSuccess) {
     return (
-      <div className="rounded-3xl border border-pine/20 bg-pine/10 p-5 text-sm leading-6 text-slate-700">
-        <p className="font-semibold text-pine">{success}</p>
+      <div className="rounded-[1.5rem] border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-zinc-700">
+        <p className="font-semibold text-zinc-900">{success}</p>
       </div>
     );
   }
@@ -162,7 +162,7 @@ function MutationFeedback({
 
 function JsonPreview({ value }: { value: unknown }) {
   return (
-    <pre className="max-h-72 overflow-auto rounded-[1.25rem] border border-[color:var(--border)] bg-ink p-4 text-xs leading-6 text-white/90">
+    <pre className="max-h-72 overflow-auto rounded-[1rem] border border-zinc-200 bg-zinc-950 p-4 text-xs leading-6 text-white/90">
       {JSON.stringify(value, null, 2)}
     </pre>
   );
@@ -194,8 +194,8 @@ function SeedOperations() {
 
   return (
     <Panel
-      title="OpenAIRE Beginner's Kit Seed"
-      description="Inspect dataset readiness, load a limited or full seed, and reset development seed data."
+      title="OpenAIRE seed"
+      description="Status, load and reset."
     >
       <div className="space-y-5">
         {seedStatus.isLoading ? (
@@ -218,26 +218,26 @@ function SeedOperations() {
               ]}
             />
             <div className="grid gap-3 md:grid-cols-2">
-              <div className="rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+              <div className="rounded-[1rem] border border-[color:var(--border)] bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
                   Required files
                 </p>
-                <ul className="mt-3 space-y-2 text-sm text-slate-700">
+                <ul className="mt-3 space-y-2 text-sm text-zinc-600">
                   {Object.entries(seedStatus.data.required_files).map(([file, exists]) => (
                     <li key={file} className="flex items-center justify-between gap-3">
                       <span>{file}</span>
-                      <span className={exists ? "font-semibold text-pine" : "font-semibold text-[color:var(--danger)]"}>
+                      <span className={exists ? "font-semibold text-zinc-900" : "font-semibold text-[color:var(--danger)]"}>
                         {exists ? "available" : "missing"}
                       </span>
                     </li>
                   ))}
                 </ul>
               </div>
-              <div className="rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+              <div className="rounded-[1rem] border border-[color:var(--border)] bg-white p-4">
+                <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
                   Table counts
                 </p>
-                <ul className="mt-3 grid gap-2 text-sm text-slate-700">
+                <ul className="mt-3 grid gap-2 text-sm text-zinc-600">
                   {Object.entries(seedStatus.data.table_counts).map(([table, count]) => (
                     <li key={table} className="flex items-center justify-between gap-3">
                       <span>{table}</span>
@@ -269,16 +269,15 @@ function SeedOperations() {
           </button>
         </form>
 
-        <div className="rounded-[1.5rem] border border-[color:rgba(181,74,47,0.22)] bg-[color:rgba(181,74,47,0.08)] p-4">
-          <label className="flex items-start gap-3 text-sm leading-6 text-slate-700">
+        <div className="rounded-[1.25rem] border border-red-200 bg-red-50 p-4">
+          <label className="flex items-start gap-3 text-sm leading-6 text-zinc-700">
             <input
               type="checkbox"
               checked={resetConfirmed}
               onChange={(event) => setResetConfirmed(event.target.checked)}
               className="mt-1"
             />
-            Reset deletes seed-created canonical records and provenance rows. This is intended for
-            controlled development/demo rebuilds only.
+            Confirm reset of seed-created records and provenance rows.
           </label>
           <button
             type="button"
@@ -313,7 +312,7 @@ function NormalizationOperations() {
   return (
     <Panel
       title="Normalization"
-      description="Run the deterministic normalization and deduplication pipeline over canonical data."
+      description="Run deterministic cleanup."
     >
       <div className="space-y-5">
         {status.isLoading ? (
@@ -332,7 +331,7 @@ function NormalizationOperations() {
             ]}
           />
         ) : (
-          <div className="rounded-3xl border border-dashed border-[color:var(--border)] bg-white/60 p-5 text-sm text-slate-600">
+          <div className="rounded-[1.5rem] border border-dashed border-zinc-200 bg-white p-5 text-sm text-zinc-500">
             No normalization run has been recorded yet.
           </div>
         )}
@@ -356,20 +355,20 @@ function NormalizationOperations() {
 
         {findings.data && findings.data.length > 0 ? (
           <div className="space-y-3">
-            <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
+            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
               Latest findings
             </p>
             {findings.data.map((finding: NormalizationFinding) => (
               <div
                 key={finding.id}
-                className="rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 p-4"
+                className="rounded-[1rem] border border-[color:var(--border)] bg-white p-4"
               >
-                <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+                <div className="flex flex-wrap items-center gap-2 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
                   <span>{finding.entity_type}</span>
                   <span>{finding.confidence}</span>
                   <span>{finding.finding_type}</span>
                 </div>
-                <p className="mt-2 text-sm leading-6 text-slate-700">{finding.message}</p>
+                <p className="mt-2 text-sm leading-6 text-zinc-600">{finding.message}</p>
               </div>
             ))}
           </div>
@@ -406,7 +405,7 @@ function EmbeddingsOperations() {
   return (
     <Panel
       title="Embeddings"
-      description="Inspect provider settings, build publication embeddings and reset the active Qdrant collection."
+      description="Provider status, build and reset."
     >
       <div className="space-y-5">
         {provider.isLoading || status.isLoading ? (
@@ -450,7 +449,7 @@ function EmbeddingsOperations() {
               inputMode="numeric"
               placeholder="Optional batch limit"
             />
-            <label className="flex items-center gap-2 rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 px-4 py-3 text-sm text-slate-700">
+            <label className="flex items-center gap-2 rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm text-zinc-700">
               <input type="checkbox" {...register("force")} />
               Force regeneration
             </label>
@@ -460,8 +459,8 @@ function EmbeddingsOperations() {
           </button>
         </form>
 
-        <div className="flex flex-col gap-3 rounded-[1.5rem] border border-[color:var(--border)] bg-white/60 p-4 md:flex-row md:items-center md:justify-between">
-          <label className="flex items-center gap-2 text-sm text-slate-700">
+        <div className="flex flex-col gap-3 rounded-[1.25rem] border border-[color:var(--border)] bg-white p-4 md:flex-row md:items-center md:justify-between">
+          <label className="flex items-center gap-2 text-sm text-zinc-700">
             <input
               type="checkbox"
               checked={loadAllForce}
@@ -479,16 +478,15 @@ function EmbeddingsOperations() {
           </button>
         </div>
 
-        <div className="rounded-[1.5rem] border border-[color:rgba(181,74,47,0.22)] bg-[color:rgba(181,74,47,0.08)] p-4">
-          <label className="flex items-start gap-3 text-sm leading-6 text-slate-700">
+        <div className="rounded-[1.25rem] border border-red-200 bg-red-50 p-4">
+          <label className="flex items-start gap-3 text-sm leading-6 text-zinc-700">
             <input
               type="checkbox"
               checked={resetConfirmed}
               onChange={(event) => setResetConfirmed(event.target.checked)}
               className="mt-1"
             />
-            Reset deletes the active Qdrant collection and aligned PostgreSQL embedding metadata for
-            the active provider/model/version.
+            Confirm reset of the active Qdrant collection and aligned metadata.
           </label>
           <button
             type="button"
@@ -544,8 +542,8 @@ function GraphOperations() {
 
   return (
     <Panel
-      title="Graph Builds"
-      description="Trigger materialized coauthorship and semantic graph rebuilds from the existing backend APIs."
+      title="Graph builds"
+      description="Coauthorship and semantic materialization."
     >
       <div className="grid gap-6 xl:grid-cols-2">
         <div className="space-y-4">
@@ -572,7 +570,7 @@ function GraphOperations() {
               className={inputClass}
               placeholder="Triggered by"
             />
-            <label className="flex items-center gap-2 rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 px-4 py-3 text-sm text-slate-700">
+            <label className="flex items-center gap-2 rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm text-zinc-700">
               <input type="checkbox" {...coauthorshipForm.register("include_isolated_nodes")} />
               Include isolated nodes
             </label>
@@ -667,11 +665,11 @@ function GraphOperations() {
               />
             </div>
             <div className="flex flex-wrap gap-3">
-              <label className="flex items-center gap-2 rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 px-4 py-3 text-sm text-slate-700">
+              <label className="flex items-center gap-2 rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm text-zinc-700">
                 <input type="checkbox" {...semanticForm.register("mutual_knn")} />
                 Mutual KNN only
               </label>
-              <label className="flex items-center gap-2 rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 px-4 py-3 text-sm text-slate-700">
+              <label className="flex items-center gap-2 rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm text-zinc-700">
                 <input type="checkbox" {...semanticForm.register("include_isolated_nodes")} />
                 Include isolated nodes
               </label>

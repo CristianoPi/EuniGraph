@@ -6,8 +6,8 @@ export default function OrganizationsPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Organizations"
-        title="Browse canonical organizations."
-        description="Inspect universities, departments and related organizational entities through filters already supported by the backend."
+        title="Organizations."
+        description="Browse units, hierarchy and linked researchers."
       />
       <OrganizationsBrowser />
     </div>

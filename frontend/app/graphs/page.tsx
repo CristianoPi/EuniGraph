@@ -6,8 +6,8 @@ export default function GraphsPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Graphs"
-        title="A shared explorer for coauthorship and semantic graph layers."
-        description="Switch between collaboration and semantic layers, focus subgraphs and inspect node or edge detail from the same explorer."
+        title="Two graph layers."
+        description="Switch layer, filter subgraphs and inspect nodes or edges."
       />
 
       <UnifiedGraphExplorer />

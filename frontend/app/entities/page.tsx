@@ -11,17 +11,17 @@ const entryPoints: Array<{
   {
     href: "/entities/publications",
     title: "Publications",
-    description: "Browse canonical publication metadata, filter by year or DOI and open detail views.",
+    description: "Metadata, DOI, year and detail views.",
   },
   {
     href: "/entities/researchers",
     title: "Researchers",
-    description: "Search by name or ORCID and inspect affiliation context from canonical relations.",
+    description: "Names, ORCID and affiliation context.",
   },
   {
     href: "/entities/organizations",
     title: "Organizations",
-    description: "Navigate universities, departments and hierarchy-driven canonical entities.",
+    description: "Universities, departments and hierarchy.",
   },
 ];
 
@@ -30,42 +30,42 @@ export default function EntitiesPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Entities"
-        title="The canonical catalog now has dedicated browsing routes."
-        description="Browse publications, researchers and organizations through dedicated list and detail views."
+        title="Canonical catalog."
+        description="Browse publications, researchers and organizations through focused views."
       />
 
       <div className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Panel
-          title="Catalog entry points"
-          description="Each entity family now has a dedicated browser route with filters aligned to the backend APIs."
+          title="Browse"
+          description="Backend-aligned filters."
         >
           <div className="grid gap-3">
             {entryPoints.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="rounded-[1.5rem] border border-[color:var(--border)] bg-white/70 px-5 py-5 transition hover:border-pine/40 hover:bg-white"
+                className="rounded-[1.25rem] border border-[color:var(--border)] bg-white px-5 py-4 transition hover:border-zinc-300 hover:shadow-panel"
               >
-                <p className="text-lg font-semibold text-ink">{item.title}</p>
-                <p className="mt-2 text-sm leading-7 text-slate-600">{item.description}</p>
+                <p className="text-base font-semibold text-ink">{item.title}</p>
+                <p className="mt-1 text-sm leading-6 text-zinc-500">{item.description}</p>
               </Link>
             ))}
           </div>
         </Panel>
 
         <Panel
-          title="Current scope"
-          description="This iteration focuses on consultation and drill-down, not on editing or graph exploration."
+          title="Scope"
+          description="Read-first catalog navigation."
         >
           <div className="grid gap-3">
             {[
-              "List and detail views for the three canonical entity families",
-              "Filters that correspond directly to the existing backend query parameters",
-              "Route-linked drill-down between entities without duplicating backend rules",
+              "List and detail views",
+              "Backend query filters",
+              "Route-linked drill-down",
             ].map((item) => (
               <div
                 key={item}
-                className="rounded-[1.25rem] border border-[color:var(--border)] bg-white/70 px-4 py-4 text-sm leading-6 text-slate-700"
+                className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm leading-6 text-zinc-600"
               >
                 {item}
               </div>

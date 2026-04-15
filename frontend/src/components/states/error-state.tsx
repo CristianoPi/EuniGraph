@@ -8,11 +8,11 @@ export function ErrorState({
   message,
 }: ErrorStateProps) {
   return (
-    <div className="rounded-3xl border border-[color:rgba(181,74,47,0.22)] bg-[color:rgba(181,74,47,0.08)] p-6 shadow-panel">
-      <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[color:var(--danger)]">
+    <div className="rounded-[1.5rem] border border-red-200 bg-red-50 p-5 shadow-panel">
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[color:var(--danger)]">
         {title}
       </p>
-      <p className="mt-2 text-sm leading-6 text-slate-700">{message}</p>
+      <p className="mt-2 text-sm leading-6 text-zinc-700">{message}</p>
     </div>
   );
 }

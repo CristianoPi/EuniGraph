@@ -196,7 +196,7 @@ export function UnifiedGraphExplorer() {
               width: "data(size)",
               height: "data(size)",
               label: "",
-              "background-color": layer === "coauthorship" ? "#0f4c5c" : "#c6653d",
+              "background-color": layer === "coauthorship" ? "#18181b" : "#f59e0b",
               "border-color": "#ffffff",
               "border-width": 2,
               opacity: 0.9,
@@ -209,13 +209,13 @@ export function UnifiedGraphExplorer() {
               "text-wrap": "wrap",
               "text-max-width": "160px",
               "font-size": "12px",
-              color: "#102432",
+              color: "#18181b",
               "text-background-color": "#ffffff",
               "text-background-opacity": 0.95,
               "text-background-padding": "6px",
               "text-background-shape": "roundrectangle",
               "text-margin-y": -22,
-              "border-color": "#102432",
+              "border-color": "#18181b",
               "border-width": 3,
             },
           },
@@ -223,7 +223,10 @@ export function UnifiedGraphExplorer() {
             selector: "edge",
             style: {
               width: "data(lineWidth)",
-              "line-color": layer === "coauthorship" ? "rgba(15, 76, 92, 0.32)" : "rgba(198, 101, 61, 0.32)",
+              "line-color":
+                layer === "coauthorship"
+                  ? "rgba(24, 24, 27, 0.22)"
+                  : "rgba(245, 158, 11, 0.35)",
               "curve-style": "bezier",
               opacity: 0.72,
             },
@@ -232,7 +235,7 @@ export function UnifiedGraphExplorer() {
             selector: "edge:selected",
             style: {
               width: "mapData(lineWidth, 1, 8, 3, 10)",
-              "line-color": "#102432",
+              "line-color": "#18181b",
               opacity: 1,
             },
           },
@@ -405,8 +408,8 @@ export function UnifiedGraphExplorer() {
   return (
     <div className="space-y-6">
       <Panel
-        title="Unified graph explorer"
-        description="The same interaction pattern is used for collaboration and semantic layers: filter, load the materialized graph, explore by zoom and pan, then inspect contextual node or edge detail."
+        title="Graph controls"
+        description="Choose a layer, filter, then inspect nodes or edges."
       >
         <GraphControls
           layer={layer}
@@ -434,7 +437,7 @@ export function UnifiedGraphExplorer() {
       ) : activeStatus.data?.status !== "completed" ? (
         <EmptyState
           title="Graph build not available"
-          message={`The active ${layer} graph is not currently in completed state. Build or rebuild it from the backend workflow APIs before using the explorer.`}
+          message={`The active ${layer} graph is not completed yet. Build it from admin operations.`}
         />
       ) : !activeGraph.data || activeGraph.data.nodes.length === 0 ? (
         <EmptyState
@@ -454,16 +457,16 @@ export function UnifiedGraphExplorer() {
             >
               <GraphCanvas
                 ref={canvasRef}
-                hint="Drag to pan, wheel to zoom, click nodes or edges for detail."
+                hint="Drag, zoom, select."
               />
             </Panel>
 
             <div className="grid gap-4 xl:grid-cols-3">
               <Panel
-                title="Build status"
-                description="Current materialized graph metadata served by the backend."
+                title="Build"
+                description="Current metadata."
               >
-                <dl className="space-y-2 text-sm leading-7 text-slate-700">
+                <dl className="space-y-2 text-sm leading-7 text-zinc-600">
                   <div>
                     <dt className="font-semibold text-ink">Status</dt>
                     <dd>{activeStatus.data?.status}</dd>
@@ -479,11 +482,11 @@ export function UnifiedGraphExplorer() {
                 </dl>
               </Panel>
               <Panel
-                title="Graph metrics"
-                description="Top-level counters from the latest active build."
+                title="Metrics"
+                description="Latest active build."
               >
                 {activeMetrics.data ? (
-                  <dl className="space-y-2 text-sm leading-7 text-slate-700">
+                  <dl className="space-y-2 text-sm leading-7 text-zinc-600">
                     <div>
                       <dt className="font-semibold text-ink">Nodes</dt>
                       <dd>{activeMetrics.data.node_count}</dd>
@@ -505,13 +508,13 @@ export function UnifiedGraphExplorer() {
                 )}
               </Panel>
               <Panel
-                title="Active filter mode"
-                description="Subgraph retrieval always starts from the materialized backend graph."
+                title="Mode"
+                description="Full graph or subgraph."
               >
-                <p className="text-sm leading-7 text-slate-700">
+                <p className="text-sm leading-7 text-zinc-600">
                   {activeHasFilters
-                    ? "The explorer is currently showing a filtered subgraph derived from the persisted graph payload."
-                    : "The explorer is currently showing the full active graph payload."}
+                    ? "Filtered subgraph from the persisted payload."
+                    : "Full active graph payload."}
                 </p>
               </Panel>
             </div>

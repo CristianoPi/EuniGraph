@@ -16,8 +16,8 @@ export default async function PublicationDetailPage({
     <div className="space-y-6">
       <PageHeader
         eyebrow="Publication Detail"
-        title="Inspect one canonical publication and its current linked context."
-        description="This view focuses on readable metadata and directly available relations, leaving advanced graph exploration to later slices."
+        title="Publication detail."
+        description="Metadata, authors, organizations and embedding status."
       />
       <PublicationDetail id={id} />
     </div>

@@ -65,46 +65,46 @@ export function PublicationsBrowser() {
   return (
     <div className="space-y-5">
       <Panel
-        title="Publication browsing"
-        description="Use the existing publication filters to search by title, DOI, year or OpenAIRE id."
+        title="Filters"
+        description="Title, DOI, OpenAIRE id or year."
       >
         <form onSubmit={handleSubmit} className="grid gap-4 xl:grid-cols-4">
           <input
             value={title}
             onChange={(event) => setTitle(event.target.value)}
             placeholder="Title fragment"
-            className="rounded-[1.25rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+            className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
           />
           <input
             value={doi}
             onChange={(event) => setDoi(event.target.value)}
             placeholder="DOI"
-            className="rounded-[1.25rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+            className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
           />
           <input
             value={openaireId}
             onChange={(event) => setOpenaireId(event.target.value)}
             placeholder="OpenAIRE id"
-            className="rounded-[1.25rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+            className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
           />
           <input
             value={year}
             onChange={(event) => setYear(event.target.value)}
             placeholder="Publication year"
             inputMode="numeric"
-            className="rounded-[1.25rem] border border-[color:var(--border)] bg-white/80 px-4 py-3 text-sm outline-none focus:border-pine"
+            className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
           />
           <div className="flex gap-3 xl:col-span-4">
             <button
               type="submit"
-              className="rounded-full bg-pine px-5 py-3 text-sm font-semibold text-white"
+              className="rounded-full bg-zinc-900 px-5 py-3 text-sm font-semibold text-white"
             >
               Apply filters
             </button>
             <button
               type="button"
               onClick={resetFilters}
-              className="rounded-full border border-[color:var(--border)] bg-white px-5 py-3 text-sm font-semibold text-slate-700"
+              className="rounded-full border border-[color:var(--border)] bg-white px-5 py-3 text-sm font-semibold text-zinc-700"
             >
               Reset
             </button>
@@ -127,34 +127,34 @@ export function PublicationsBrowser() {
             <Link
               key={publication.id}
               href={publicationRoute(publication.id)}
-              className="rounded-[1.75rem] border border-[color:var(--border)] bg-[color:var(--panel)] p-5 shadow-panel transition hover:border-pine/40"
+              className="rounded-[1.35rem] border border-[color:var(--border)] bg-white p-5 shadow-panel transition hover:border-zinc-300"
             >
               <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
                 <div className="space-y-3">
                   <h2 className="text-xl font-semibold text-ink">{publication.title}</h2>
-                  <div className="flex flex-wrap gap-2 text-sm text-slate-600">
+                  <div className="flex flex-wrap gap-2 text-sm text-zinc-500">
                     {publication.publication_year ? (
-                      <span className="rounded-full bg-white/80 px-3 py-1">
+                      <span className="rounded-full bg-zinc-100 px-3 py-1">
                         {publication.publication_year}
                       </span>
                     ) : null}
                     {publication.doi ? (
-                      <span className="rounded-full bg-white/80 px-3 py-1">{publication.doi}</span>
+                      <span className="rounded-full bg-zinc-100 px-3 py-1">{publication.doi}</span>
                     ) : null}
                     {publication.journal_name ? (
-                      <span className="rounded-full bg-white/80 px-3 py-1">
+                      <span className="rounded-full bg-zinc-100 px-3 py-1">
                         {publication.journal_name}
                       </span>
                     ) : null}
                   </div>
                   {publication.abstract ? (
-                    <p className="max-w-4xl text-sm leading-7 text-slate-700 line-clamp-3">
+                    <p className="max-w-4xl text-sm leading-7 text-zinc-600 line-clamp-3">
                       {publication.abstract}
                     </p>
                   ) : null}
                 </div>
-                <div className="rounded-full border border-[color:var(--border)] bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">
-                  Detail view
+                <div className="rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-900">
+                  Open
                 </div>
               </div>
             </Link>

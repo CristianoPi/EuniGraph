@@ -24,10 +24,10 @@ At a high level:
 - module boundaries separate domain concerns without introducing service fragmentation too early
 
 The backend entrypoint is:
-- [backend/src/eunigraph/main.py](/Users/cristianopistorio/Code/GitHub/EuniGraph/backend/src/eunigraph/main.py)
+- [backend/src/eunigraph/main.py](../backend/src/eunigraph/main.py)
 
 The API router registry is:
-- [backend/src/eunigraph/api/router.py](/Users/cristianopistorio/Code/GitHub/EuniGraph/backend/src/eunigraph/api/router.py)
+- [backend/src/eunigraph/api/router.py](../backend/src/eunigraph/api/router.py)
 
 ## 3. Main Modules
 
@@ -60,7 +60,7 @@ PostgreSQL is the canonical system of record for:
 Qdrant stores publication vectors and semantic publication payloads used for:
 - nearest-neighbor retrieval
 - semantic graph construction
-- future semantic exploration APIs
+- future semantic search and exploration APIs
 
 ### File Storage
 
@@ -112,13 +112,13 @@ Swagger/OpenAPI metadata is configured to make the API easier to navigate:
 ## 7. Where to Find Technical Documentation
 
 Backend-related project documents are split by concern:
-- [docs/architecture.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/architecture.md): overall system architecture
-- [docs/data-model.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/data-model.md): canonical PostgreSQL data model
-- [docs/seed-and-api.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/seed-and-api.md): seed workflow and API notes
-- [docs/embeddings.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/embeddings.md): provider-based embeddings layer
-- [docs/coauthorship.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/coauthorship.md): coauthorship graph pipeline
-- [docs/semantic-graph.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/semantic-graph.md): semantic similarity graph pipeline
-- [docs/normalization.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/normalization.md): normalization and deduplication rules
+- [architecture.md](architecture.md): overall system architecture
+- [data-model.md](data-model.md): canonical PostgreSQL data model
+- [seed-and-api.md](seed-and-api.md): seed workflow and API notes
+- [embeddings.md](embeddings.md): provider-based embeddings layer
+- [coauthorship.md](coauthorship.md): coauthorship graph pipeline
+- [semantic-graph.md](semantic-graph.md): semantic similarity graph pipeline
+- [normalization.md](normalization.md): normalization and deduplication rules
 
 ## 8. Significant Architectural Choices
 

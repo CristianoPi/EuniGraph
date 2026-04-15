@@ -4,6 +4,8 @@ The frontend is now a real application workspace built with:
 - Next.js App Router
 - Tailwind CSS
 - TanStack Query
+- Cytoscape.js
+- React Hook Form
 
 It provides:
 - the shared application shell
@@ -43,6 +45,6 @@ In Docker the frontend proxy targets:
 - `src/hooks/`: TanStack Query hooks for backend-facing server state
 - `src/lib/`: config, API client and small frontend utilities
 
-See [docs/frontend-overview.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-overview.md) for the technical overview.
-See [docs/frontend-graph-explorer.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-graph-explorer.md) for the graph explorer behavior and API integration details.
-See [docs/frontend-admin-console.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-admin-console.md) for the admin console routes, operations and current MVP limits.
+See [docs/frontend-overview.md](../docs/frontend-overview.md) for the technical overview.
+See [docs/frontend-graph-explorer.md](../docs/frontend-graph-explorer.md) for the graph explorer behavior and API integration details.
+See [docs/frontend-admin-console.md](../docs/frontend-admin-console.md) for the admin console routes, operations and current MVP limits.

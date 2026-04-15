@@ -10,7 +10,7 @@ The system is designed to:
 - derive a co-authorship graph for analysis
 - manage article embeddings and semantic similarity workflows through Qdrant
 - expose capabilities through APIs
-- support a future interactive web frontend
+- provide an interactive web frontend for browsing, graph exploration and prototype administration
 
 ## Architectural Rationale
 
@@ -39,24 +39,38 @@ The chosen structure keeps service extraction possible later, but does not pay t
 ### Backend
 
 The backend is a FastAPI application organized into domain-oriented modules:
-- `catalog`: canonical entities such as publications, authors, affiliations, universities
+- `catalog`: canonical entities such as publications, researchers, organizations, authorship and affiliations
 - `ingestion`: source adapters and import workflows
 - `normalization`: data cleanup, canonicalization, deduplication, mapping
 - `embeddings`: semantic enrichment and vector search integration
 - `coauthorship`: graph projection and analysis workflows
+- `semantic_graph`: semantic publication-publication graph materialization
 - `tasks`: internal orchestration for long-running processes
 - `api`: HTTP exposure and request/response schemas
 - `core`: configuration, lifecycle, logging, bootstrap
 - `shared`: minimal cross-module primitives
 - `persistence`: shared PostgreSQL and Qdrant adapters
 
+### Frontend
+
+The frontend is a Next.js application in the same monorepo. It provides:
+- the application shell and navigation
+- dashboard and canonical entity browsing
+- publication, researcher and organization detail views
+- unified coauthorship and semantic graph exploration
+- an admin console for workflow operations and manual canonical data entry
+
+The frontend uses a Next.js API proxy route to call the backend, keeping browser-facing API paths stable while allowing the actual backend origin to remain server-side configurable.
+
 ### PostgreSQL
 
 PostgreSQL is the system of record for canonical structured data:
 - publications
-- authors
-- affiliations
-- universities
+- researchers
+- organizations
+- authorship and affiliation bridges
+- provenance records
+- workflow metadata
 - linking tables and metadata required for application workflows
 
 This datastore should remain the authoritative source for the normalized research model.
@@ -67,7 +81,7 @@ Qdrant stores vector representations of articles and supports semantic similarit
 
 ### graph-tool
 
-`graph-tool` is the chosen library for co-authorship graph analysis because graph operations and network analytics are a first-class concern of the platform.
+`graph-tool` is the chosen library for materialized graph analysis because graph operations and network analytics are a first-class concern of the platform.
 
 ## Design Principles
 
@@ -136,6 +150,17 @@ Chosen for:
 - reduced setup drift across collaborators
 - early alignment with deployment concerns
 
+### Frontend Stack
+
+Chosen frontend technologies:
+- Next.js with App Router for route and layout composition
+- Tailwind CSS for rapid, consistent styling
+- TanStack Query for server-state queries and mutations
+- Cytoscape.js for interactive graph rendering
+- React Hook Form for admin and manual data entry forms
+
+These choices are already implemented in `frontend/` and documented in [frontend-overview.md](frontend-overview.md), [frontend-graph-explorer.md](frontend-graph-explorer.md) and [frontend-admin-console.md](frontend-admin-console.md).
+
 ## Path Toward Future Service Extraction
 
 The current monolith is intentionally shaped to support future separation if justified by scale, performance, or team topology.
@@ -183,14 +208,23 @@ Ingestion, embedding generation, and graph rebuilding may become slower than syn
 - `uv` for Python dependency and environment management
 - SQLAlchemy 2 plus Alembic as the relational persistence baseline
 - lightweight but complete quality baseline: pytest, Ruff, mypy, pre-commit
+- canonical PostgreSQL schema for publications, researchers, organizations, provenance, embeddings and graph build tracking
+- OpenAIRE Beginner's Kit seed workflow as the initial ingestion path
+- manual entity management APIs with provenance tracking
+- deterministic normalization and deduplication workflow
+- provider-based publication embeddings with Gemini as the first implementation
+- materialized coauthorship and semantic graph pipelines
+- Next.js, Tailwind CSS, TanStack Query, Cytoscape.js and React Hook Form as the frontend baseline
+- frontend proxy route for backend API access instead of direct browser-to-FastAPI calls
 
 ## Decisions Deferred
 
 The following topics are intentionally deferred to later issues:
 - source-specific ingestion adapters
-- canonical relational schema details
-- entity resolution strategy
-- embedding provider integration
-- graph materialization cadence and storage strategy
-- frontend stack and visualization implementation details
-- CI depth beyond the initial quality gate
+- full entity resolution beyond the current deterministic normalization workflow
+- additional embedding providers beyond Gemini
+- background workers or scheduled orchestration for long-running workflows
+- semantic free-text search endpoints
+- authentication, authorization and role management
+- advanced entity editing and relation management UI
+- deeper CI coverage beyond the current quality gate

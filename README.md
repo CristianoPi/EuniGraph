@@ -5,8 +5,9 @@ EuniGraph is a prototype platform for mapping research activity across EUNICE pa
 The repository is intentionally structured as a modular monolith from day one:
 - FastAPI backend for APIs and application modules
 - PostgreSQL as the canonical relational datastore
-- Qdrant for semantic search and vector storage
-- `graph-tool` for co-authorship graph analysis
+- Qdrant for semantic workflows and vector storage
+- `graph-tool` for materialized graph analysis
+- Next.js frontend for dashboard, browsing, graph exploration and admin workflows
 - Docker-based local development and reproducible environments
 
 ## Repository Layout
@@ -14,7 +15,7 @@ The repository is intentionally structured as a modular monolith from day one:
 ```text
 .
 |-- backend/            # Python application, tests, migrations
-|-- frontend/           # Next.js frontend shell and shared UI foundation
+|-- frontend/           # Next.js frontend application
 |-- docs/               # Architecture, ADRs, diagrams
 |-- infra/              # Dockerfiles and infrastructure-oriented assets
 |-- scripts/            # Bootstrap and helper scripts
@@ -28,20 +29,42 @@ The repository is intentionally structured as a modular monolith from day one:
 
 1. Copy the environment template:
    `cp .env.example .env`
-2. Build and start the local stack:
+2. Build and start the backend stack:
    `docker compose up --build`
 3. Open the backend API docs:
    [http://localhost:8000/docs](http://localhost:8000/docs)
 
-To start the frontend as well:
+To start the full stack including the frontend:
 - `docker compose --profile ui up --build`
-- frontend shell: [http://localhost:3000](http://localhost:3000)
+- frontend application: [http://localhost:3000](http://localhost:3000)
+- backend API docs: [http://localhost:8000/docs](http://localhost:8000/docs)
+
+## Frontend
+
+The frontend lives in [frontend/](frontend/) and is built with:
+- Next.js App Router
+- Tailwind CSS
+- TanStack Query
+- Cytoscape.js for graph rendering
+- React Hook Form for admin and manual data entry forms
+
+Current frontend routes include:
+- `/`: overview and integration status
+- `/dashboard`: workflow and catalog snapshot
+- `/entities`: canonical catalog hub
+- `/entities/publications`, `/entities/researchers`, `/entities/organizations`: browsing and detail flows
+- `/graphs`: unified coauthorship and semantic graph explorer
+- `/admin`: admin console overview
+- `/admin/operations`: seed, normalization, embeddings and graph build controls
+- `/admin/data-entry`: manual creation forms for publications, researchers and organizations
+
+The browser calls the backend through the frontend proxy route `/api/backend/*`. In Docker Compose the frontend container forwards those requests to `http://backend:8000`, so the backend does not need to be exposed separately for a frontend-only public tunnel.
 
 ## OpenAIRE Beginner's Kit Seed
 
 The MVP seed expects the official OpenAIRE Beginner's Kit to be downloaded manually outside the application flow.
 
-Configure the local dataset path with `OPENAIRE_BEGINNERS_KIT_PATH`. The default value in [`.env.example`](/Users/cristianopistorio/Code/GitHub/EuniGraph/.env.example) points to:
+Configure the local dataset path with `OPENAIRE_BEGINNERS_KIT_PATH`. The default value in [`.env.example`](.env.example) points to:
 
 `data/openaire/beginners_kit/`
 
@@ -81,7 +104,7 @@ These endpoints are intended for demo data entry, corrections, and controlled en
 Manual writes are tracked through the provenance layer with a dedicated logical source:
 - `manual_api_entry`
 
-See [docs/seed-and-api.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/seed-and-api.md) for the current API surface and provenance behavior.
+See [docs/seed-and-api.md](docs/seed-and-api.md) for the current API surface and provenance behavior.
 
 ## Coauthorship Graph Pipeline
 
@@ -106,7 +129,7 @@ Main endpoints:
 - `GET /api/v1/coauthorship-graph/nodes/{researcher_id}`
 - `GET /api/v1/coauthorship-graph/visualization`
 
-See [docs/coauthorship.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/coauthorship.md) for build logic, artifact layout, metrics and current limitations.
+See [docs/coauthorship.md](docs/coauthorship.md) for build logic, artifact layout, metrics and current limitations.
 
 ## Embeddings Layer
 
@@ -149,13 +172,13 @@ Main endpoints:
 - Avoid coupling API, domain, and persistence models
 - Containerize early to reduce onboarding friction and environment drift
 
-See [docs/architecture.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/architecture.md) for the initial architecture baseline.
-See [docs/backend-overview.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/backend-overview.md) for the backend structure, API families and Swagger/OpenAPI entry points.
-See [docs/frontend-overview.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-overview.md) for the frontend shell, route structure and backend integration pattern.
-See [docs/frontend-graph-explorer.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-graph-explorer.md) for the unified coauthorship and semantic graph explorer.
-See [docs/frontend-admin-console.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-admin-console.md) for the admin operations and manual data entry frontend.
-See [docs/seed-and-api.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/seed-and-api.md) for the current seed and API development notes.
-See [docs/normalization.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/normalization.md) for the current normalization and deduplication rules.
-See [docs/coauthorship.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/coauthorship.md) for the materialized coauthorship graph pipeline.
-See [docs/embeddings.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/embeddings.md) for the provider-based embeddings layer and Qdrant integration.
-See [docs/semantic-graph.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/semantic-graph.md) for the materialized semantic similarity graph pipeline.
+See [docs/architecture.md](docs/architecture.md) for the architecture baseline.
+See [docs/backend-overview.md](docs/backend-overview.md) for the backend structure, API families and Swagger/OpenAPI entry points.
+See [docs/frontend-overview.md](docs/frontend-overview.md) for the frontend shell, route structure and backend integration pattern.
+See [docs/frontend-graph-explorer.md](docs/frontend-graph-explorer.md) for the unified coauthorship and semantic graph explorer.
+See [docs/frontend-admin-console.md](docs/frontend-admin-console.md) for the admin operations and manual data entry frontend.
+See [docs/seed-and-api.md](docs/seed-and-api.md) for the current seed and API development notes.
+See [docs/normalization.md](docs/normalization.md) for the current normalization and deduplication rules.
+See [docs/coauthorship.md](docs/coauthorship.md) for the materialized coauthorship graph pipeline.
+See [docs/embeddings.md](docs/embeddings.md) for the provider-based embeddings layer and Qdrant integration.
+See [docs/semantic-graph.md](docs/semantic-graph.md) for the materialized semantic similarity graph pipeline.

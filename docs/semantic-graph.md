@@ -4,7 +4,7 @@
 
 This document describes how EuniGraph builds, persists and serves the semantic similarity graph.
 
-The goal is to transform publication embeddings already stored in Qdrant into a materialized publication-publication graph that can be reused by APIs and future frontend visualizations without rebuilding on every request.
+The goal is to transform publication embeddings already stored in Qdrant into a materialized publication-publication graph that can be reused by APIs and the frontend graph explorer without rebuilding on every request.
 
 ## Data Sources
 

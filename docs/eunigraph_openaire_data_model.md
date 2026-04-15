@@ -4,7 +4,7 @@
 
 Questo documento descrive la modellazione dati scelta per il prototipo **EuniGraph**, con particolare attenzione alla compatibilità con il **Beginner’s Kit** di OpenAIRE e con il modello concettuale dell’OpenAIRE Graph.
 
-La definizione relazionale concreta implementata nel repository è documentata in [docs/data-model.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/data-model.md).
+La definizione relazionale concreta implementata nel repository è documentata in [data-model.md](data-model.md).
 
 L’obiettivo non è copiare 1:1 lo schema OpenAIRE nel database applicativo, ma progettare un **database PostgreSQL canonico** capace di:
 

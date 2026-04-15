@@ -11,7 +11,7 @@ The schema is designed to:
 - power authorship, affiliation, organization and co-authorship queries
 - keep PostgreSQL as the structured system of record while Qdrant handles vectors
 
-This document is the concrete relational complement to [docs/eunigraph_openaire_data_model.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/eunigraph_openaire_data_model.md), which remains the conceptual OpenAIRE alignment reference.
+This document is the concrete relational complement to [eunigraph_openaire_data_model.md](eunigraph_openaire_data_model.md), which remains the conceptual OpenAIRE alignment reference.
 
 ## Model Overview
 

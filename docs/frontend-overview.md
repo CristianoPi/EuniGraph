@@ -17,6 +17,8 @@ The frontend is built with:
 - Next.js with App Router
 - Tailwind CSS
 - TanStack Query
+- Cytoscape.js for graph rendering
+- React Hook Form for admin forms
 
 These choices fit the current stage because they give the project:
 - layout and route composition without custom plumbing
@@ -26,7 +28,7 @@ These choices fit the current stage because they give the project:
 ## 3. Repository Placement
 
 The frontend lives in:
-- [frontend/](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend)
+- [frontend/](../frontend/)
 
 Main directories:
 - `app/`: route tree, root layout and the backend proxy route
@@ -42,7 +44,7 @@ Main directories:
 The shell is intentionally simple but already stable:
 - persistent sidebar navigation
 - shared header framing the current iteration
-- route placeholders for overview, dashboard, entities and graphs
+- implemented routes for overview, dashboard, entities, graphs and admin workflows
 
 This is enough to avoid restructuring later when richer views arrive.
 
@@ -51,7 +53,7 @@ This is enough to avoid restructuring later when richer views arrive.
 The frontend uses a proxy route instead of calling FastAPI directly from the browser.
 
 Proxy route:
-- [frontend/app/api/backend/[...path]/route.ts](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/app/api/backend/[...path]/route.ts)
+- [frontend/app/api/backend/[...path]/route.ts](../frontend/app/api/backend/[...path]/route.ts)
 
 Why this choice:
 - keeps the browser API base path stable
@@ -109,7 +111,7 @@ Supporting routes:
 
 ## 8. Dashboard and Browsing Experience
 
-The current frontend goes beyond shell-only placeholders.
+The current frontend goes beyond the initial shell foundation.
 
 Dashboard:
 - combines backend health, embeddings status and graph build status
@@ -151,8 +153,8 @@ The frontend container mounts the project workspace and receives the backend URL
 ## 11. Current Limits
 
 The frontend foundation deliberately stops short of:
-- advanced graph visualization
-- editing workflows
+- advanced graph analytics and saved graph-view workflows
+- editing workflows for existing canonical records and relation management
 - authentication
 - cross-entity aggregated search endpoint support
 - backend-driven total counts for catalog metrics
@@ -168,7 +170,7 @@ The current design principle is:
 - different node and edge meaning depending on the selected layer
 
 Dedicated documentation:
-- [docs/frontend-graph-explorer.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-graph-explorer.md)
+- [frontend-graph-explorer.md](frontend-graph-explorer.md)
 
 ## 13. Admin Console
 
@@ -179,4 +181,4 @@ It is split into:
 - `Manual Data Entry`: creation forms for publications, researchers and organizations
 
 Dedicated documentation:
-- [docs/frontend-admin-console.md](/Users/cristianopistorio/Code/GitHub/EuniGraph/docs/frontend-admin-console.md)
+- [frontend-admin-console.md](frontend-admin-console.md)

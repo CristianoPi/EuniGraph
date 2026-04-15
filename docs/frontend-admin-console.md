@@ -23,15 +23,15 @@ The root application navigation links to `/admin`, while the admin area has its 
 ## 3. Frontend Structure
 
 Main files:
-- [frontend/app/admin/page.tsx](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/app/admin/page.tsx)
-- [frontend/app/admin/layout.tsx](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/app/admin/layout.tsx)
-- [frontend/app/admin/operations/page.tsx](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/app/admin/operations/page.tsx)
-- [frontend/app/admin/data-entry/page.tsx](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/app/admin/data-entry/page.tsx)
-- [frontend/src/components/admin/admin-nav.tsx](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/src/components/admin/admin-nav.tsx)
-- [frontend/src/components/admin/operations-console.tsx](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/src/components/admin/operations-console.tsx)
-- [frontend/src/components/admin/manual-data-entry.tsx](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/src/components/admin/manual-data-entry.tsx)
-- [frontend/src/hooks/use-admin.ts](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/src/hooks/use-admin.ts)
-- [frontend/src/lib/api/admin.ts](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/src/lib/api/admin.ts)
+- [frontend/app/admin/page.tsx](../frontend/app/admin/page.tsx)
+- [frontend/app/admin/layout.tsx](../frontend/app/admin/layout.tsx)
+- [frontend/app/admin/operations/page.tsx](../frontend/app/admin/operations/page.tsx)
+- [frontend/app/admin/data-entry/page.tsx](../frontend/app/admin/data-entry/page.tsx)
+- [frontend/src/components/admin/admin-nav.tsx](../frontend/src/components/admin/admin-nav.tsx)
+- [frontend/src/components/admin/operations-console.tsx](../frontend/src/components/admin/operations-console.tsx)
+- [frontend/src/components/admin/manual-data-entry.tsx](../frontend/src/components/admin/manual-data-entry.tsx)
+- [frontend/src/hooks/use-admin.ts](../frontend/src/hooks/use-admin.ts)
+- [frontend/src/lib/api/admin.ts](../frontend/src/lib/api/admin.ts)
 
 The implementation follows the existing frontend conventions:
 - Next.js App Router for route composition

@@ -13,7 +13,7 @@ The goal is to make the difference between the two graphs semantic, not structur
 ## 2. Route
 
 The unified explorer currently lives at:
-- [frontend/app/graphs/page.tsx](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/app/graphs/page.tsx)
+- [frontend/app/graphs/page.tsx](../frontend/app/graphs/page.tsx)
 
 Frontend URL:
 - `/graphs`
@@ -106,13 +106,13 @@ When a filter is active, the explorer loads a backend subgraph instead of prunin
 ## 8. Internal Frontend Structure
 
 Main files:
-- [frontend/src/components/graphs/unified-graph-explorer.tsx](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/src/components/graphs/unified-graph-explorer.tsx)
-- [frontend/src/components/graphs/graph-controls.tsx](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/src/components/graphs/graph-controls.tsx)
-- [frontend/src/components/graphs/graph-detail-panel.tsx](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/src/components/graphs/graph-detail-panel.tsx)
-- [frontend/src/components/graphs/graph-canvas.tsx](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/src/components/graphs/graph-canvas.tsx)
-- [frontend/src/hooks/use-graphs.ts](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/src/hooks/use-graphs.ts)
-- [frontend/src/lib/api/graphs.ts](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/src/lib/api/graphs.ts)
-- [frontend/src/lib/graphs/mappers.ts](/Users/cristianopistorio/Code/GitHub/EuniGraph/frontend/src/lib/graphs/mappers.ts)
+- [frontend/src/components/graphs/unified-graph-explorer.tsx](../frontend/src/components/graphs/unified-graph-explorer.tsx)
+- [frontend/src/components/graphs/graph-controls.tsx](../frontend/src/components/graphs/graph-controls.tsx)
+- [frontend/src/components/graphs/graph-detail-panel.tsx](../frontend/src/components/graphs/graph-detail-panel.tsx)
+- [frontend/src/components/graphs/graph-canvas.tsx](../frontend/src/components/graphs/graph-canvas.tsx)
+- [frontend/src/hooks/use-graphs.ts](../frontend/src/hooks/use-graphs.ts)
+- [frontend/src/lib/api/graphs.ts](../frontend/src/lib/api/graphs.ts)
+- [frontend/src/lib/graphs/mappers.ts](../frontend/src/lib/graphs/mappers.ts)
 
 ## 9. Difference Between the Two Layers
 

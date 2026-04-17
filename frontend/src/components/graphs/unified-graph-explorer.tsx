@@ -20,7 +20,12 @@ import {
   useSemanticMetrics,
   useSemanticNodeMetrics,
 } from "@/hooks/use-graphs";
-import { mapCoauthorshipElements, mapSemanticElements } from "@/lib/graphs/mappers";
+import {
+  COAUTHORSHIP_FALLBACK_COLOR,
+  getCoauthorshipOrganizationColor,
+  mapCoauthorshipElements,
+  mapSemanticElements,
+} from "@/lib/graphs/mappers";
 import type {
   CoauthorshipEdge,
   CoauthorshipNode,
@@ -82,6 +87,13 @@ function normalizeSemanticFilters(state: SemanticControlState): SemanticSubgraph
 function hasAnyValue(values: Record<string, string>): boolean {
   return Object.values(values).some((value) => value.trim().length > 0);
 }
+
+type CoauthorshipOrganizationLegendItem = {
+  key: string | null;
+  label: string;
+  color: string;
+  count: number;
+};
 
 export function UnifiedGraphExplorer() {
   const [layer, setLayer] = useState<GraphLayer>("coauthorship");
@@ -163,6 +175,39 @@ export function UnifiedGraphExplorer() {
 
   const selectedNode = selectedNodeId ? nodeMap.get(selectedNodeId) ?? null : null;
   const selectedEdge = selectedEdgeId ? edgeMap.get(selectedEdgeId) ?? null : null;
+  const coauthorshipOrganizationLegend = useMemo<CoauthorshipOrganizationLegendItem[]>(() => {
+    if (layer !== "coauthorship" || !coauthorshipGraph.data) {
+      return [];
+    }
+
+    const counts = new Map<string, CoauthorshipOrganizationLegendItem>();
+    for (const node of coauthorshipGraph.data.nodes) {
+      const key = node.primary_organization_id ?? null;
+      const mapKey = key ?? "__unassigned__";
+      const current = counts.get(mapKey);
+      if (current) {
+        current.count += 1;
+        continue;
+      }
+
+      counts.set(mapKey, {
+        key,
+        label: node.primary_organization_name ?? "No organization",
+        color: getCoauthorshipOrganizationColor(key),
+        count: 1,
+      });
+    }
+
+    return [...counts.values()]
+      .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))
+      .slice(0, 8);
+  }, [coauthorshipGraph.data, layer]);
+  const hasUnassignedCoauthorshipNodes = useMemo(() => {
+    if (layer !== "coauthorship" || !coauthorshipGraph.data) {
+      return false;
+    }
+    return coauthorshipGraph.data.nodes.some((node) => !node.primary_organization_id);
+  }, [coauthorshipGraph.data, layer]);
 
   useEffect(() => {
     let active = true;
@@ -196,7 +241,7 @@ export function UnifiedGraphExplorer() {
               width: "data(size)",
               height: "data(size)",
               label: "",
-              "background-color": layer === "coauthorship" ? "#18181b" : "#f59e0b",
+              "background-color": "data(nodeColor)",
               "border-color": "#ffffff",
               "border-width": 2,
               opacity: 0.9,
@@ -428,6 +473,41 @@ export function UnifiedGraphExplorer() {
           onCenterSelection={centerSelection}
           canCenterSelection={Boolean(selectedNodeId)}
         />
+        {layer === "coauthorship" && coauthorshipOrganizationLegend.length > 0 ? (
+          <div className="mt-5 space-y-3 border-t border-zinc-100 pt-4">
+            <div className="flex items-center justify-between gap-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
+                Node colors
+              </p>
+              <p className="text-xs text-zinc-400">Primary organization</p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {coauthorshipOrganizationLegend.map((item) => (
+                <div
+                  key={item.key ?? "__unassigned__"}
+                  className="inline-flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-white px-3 py-1.5 text-xs text-zinc-600"
+                >
+                  <span
+                    className="inline-flex h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="max-w-[220px] truncate">{item.label}</span>
+                  <span className="text-zinc-400">{item.count}</span>
+                </div>
+              ))}
+              {hasUnassignedCoauthorshipNodes &&
+              !coauthorshipOrganizationLegend.some((item) => item.key === null) ? (
+                <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--border)] bg-white px-3 py-1.5 text-xs text-zinc-600">
+                  <span
+                    className="inline-flex h-2.5 w-2.5 rounded-full"
+                    style={{ backgroundColor: COAUTHORSHIP_FALLBACK_COLOR }}
+                  />
+                  <span>No organization</span>
+                </div>
+              ) : null}
+            </div>
+          </div>
+        ) : null}
       </Panel>
 
       {activeStatus.isLoading || activeGraph.isLoading ? (

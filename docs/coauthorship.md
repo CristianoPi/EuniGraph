@@ -16,6 +16,7 @@ The current build reads from canonical PostgreSQL tables:
 Node derivation:
 - one node per canonical `researcher` that appears in `publication_author`
 - optional isolated nodes for researchers with only solo-authored publications
+- each node carries the researcher's `primary_organization_id` and `primary_organization_name`
 
 Edge derivation:
 - one undirected edge between two researchers when they co-author at least one publication
@@ -121,6 +122,24 @@ Each build stores:
 - a lightweight data snapshot with counts and latest update timestamps from source tables
 
 This is intended for traceability and for later decisions about rebuild cadence.
+
+## Organization Context For MVP Visualization
+
+The current coauthorship payload already exposes:
+- `primary_organization_id`
+- `primary_organization_name`
+
+For the MVP, this primary organization is the only organization context used for node-level visual encoding in the frontend.
+
+The project deliberately does not attempt, at this stage, to:
+- collapse organizations to a final parent university
+- resolve multi-affiliation cases with advanced heuristics
+- define a fixed institutional palette
+
+The frontend therefore applies a simple rule:
+- same `primary_organization_id` -> same node color
+- different `primary_organization_id` -> different node color
+- missing organization -> neutral fallback color
 
 ## Current Limitations
 

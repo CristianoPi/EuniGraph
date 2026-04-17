@@ -92,6 +92,7 @@ When a filter is active, the explorer loads a backend subgraph instead of prunin
 - organization context
 - component and community ids
 - quick link to the researcher detail route
+- node color based on `primary_organization_id` with neutral fallback when missing
 
 ### Semantic node detail
 - publication identity
@@ -122,6 +123,8 @@ The UX is shared, but the node and edge semantics differ:
 - nodes are researchers
 - edges represent shared publications
 - edge weight is collaboration intensity
+- node color reflects the researcher's primary organization from the backend payload
+- the frontend derives the color deterministically from `primary_organization_id`, so the same organization keeps the same color across reloads
 
 ### Semantic graph
 - nodes are publications
@@ -135,5 +138,6 @@ The UX is shared, but the node and edge semantics differ:
 - no hover tooltips beyond selection-driven detail panels
 - no client-side graph editing
 - no background refresh or realtime synchronization
+- coauthorship coloring uses only `primary_organization_id`; it does not resolve parent-university attribution or advanced multi-affiliation cases
 
 The explorer is intentionally focused on reliable retrieval and readable exploration of the materialized backend graphs.

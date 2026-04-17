@@ -15,6 +15,9 @@ export type ExplorerNodeData = {
   degree: number;
   strength: number;
   subtitle: string;
+  nodeColor: string;
+  organizationKey?: string | null;
+  organizationName?: string | null;
 };
 
 export type ExplorerEdgeData = {
@@ -26,7 +29,30 @@ export type ExplorerEdgeData = {
   label: string;
 };
 
+export const COAUTHORSHIP_FALLBACK_COLOR = "#a1a1aa";
+
+function hashString(value: string): number {
+  let hash = 0;
+  for (let index = 0; index < value.length; index += 1) {
+    hash = (hash * 31 + value.charCodeAt(index)) >>> 0;
+  }
+  return hash;
+}
+
+export function getCoauthorshipOrganizationColor(organizationKey: string | null | undefined): string {
+  if (!organizationKey) {
+    return COAUTHORSHIP_FALLBACK_COLOR;
+  }
+
+  const hash = hashString(organizationKey);
+  const hue = hash % 360;
+  const saturation = 46 + (hash % 8);
+  const lightness = 48 + ((hash >> 3) % 8);
+  return `hsl(${hue} ${saturation}% ${lightness}%)`;
+}
+
 function coauthorshipNodeToElement(node: CoauthorshipNode): ElementDefinition {
+  const organizationKey = node.primary_organization_id ?? null;
   return {
     data: {
       id: node.id,
@@ -35,6 +61,9 @@ function coauthorshipNodeToElement(node: CoauthorshipNode): ElementDefinition {
       degree: node.degree,
       strength: node.strength,
       subtitle: node.primary_organization_name ?? "Researcher node",
+      nodeColor: getCoauthorshipOrganizationColor(organizationKey),
+      organizationKey,
+      organizationName: node.primary_organization_name ?? null,
       size: Math.max(22, Math.min(54, 18 + node.degree * 1.8)),
     } satisfies ExplorerNodeData & { size: number },
   };
@@ -49,6 +78,7 @@ function semanticNodeToElement(node: SemanticNode): ElementDefinition {
       degree: node.degree,
       strength: node.strength,
       subtitle: node.authors.slice(0, 2).join(", ") || "Publication node",
+      nodeColor: "#f59e0b",
       size: Math.max(20, Math.min(50, 18 + node.degree * 1.6)),
     } satisfies ExplorerNodeData & { size: number },
   };

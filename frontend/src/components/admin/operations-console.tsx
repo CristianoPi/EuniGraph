@@ -7,9 +7,14 @@ import { ErrorState } from "@/components/states/error-state";
 import { LoadingState } from "@/components/states/loading-state";
 import { Panel } from "@/components/ui/panel";
 import { ApiError } from "@/lib/api/client";
-import type { GraphBuildStatus, NormalizationFinding } from "@/lib/api/admin";
+import type {
+  EUNICETargetOrganization,
+  GraphBuildStatus,
+  NormalizationFinding,
+} from "@/lib/api/admin";
 import {
   useAdminCoauthorshipStatus,
+  useAdminEuniceSeedStatus,
   useAdminEmbeddingsProvider,
   useAdminEmbeddingsStatus,
   useAdminNormalizationFindings,
@@ -20,6 +25,7 @@ import {
   useBuildEmbeddingsMutation,
   useBuildSemanticGraphMutation,
   useLoadAllEmbeddingsMutation,
+  useLoadEuniceSeedMutation,
   useLoadSeedMutation,
   useResetEmbeddingsMutation,
   useResetSeedMutation,
@@ -37,6 +43,13 @@ const dangerButtonClass =
 
 type SeedLoadForm = {
   limit_per_file: string;
+};
+
+type EUNICESeedForm = {
+  target_organization_keys: string[];
+  max_publications_per_organization: string;
+  publication_year_from: string;
+  publication_year_to: string;
 };
 
 type NormalizationForm = {
@@ -296,6 +309,125 @@ function SeedOperations() {
           error={loadMutation.error ?? resetMutation.error}
           success="Seed operation completed and related frontend caches were refreshed."
         />
+      </div>
+    </Panel>
+  );
+}
+
+function EUNICESeedOperations() {
+  const status = useAdminEuniceSeedStatus();
+  const mutation = useLoadEuniceSeedMutation();
+  const { handleSubmit, register } = useForm<EUNICESeedForm>({
+    defaultValues: {
+      target_organization_keys: [],
+      max_publications_per_organization: "50",
+      publication_year_from: "",
+      publication_year_to: "",
+    },
+  });
+
+  return (
+    <Panel title="EUNICE seed" description="Targeted OpenAIRE Graph import.">
+      <div className="space-y-5">
+        {status.isLoading ? (
+          <LoadingState label="Loading EUNICE seed status..." />
+        ) : status.isError ? (
+          <ErrorState message="EUNICE seed status could not be loaded." />
+        ) : status.data ? (
+          <div className="space-y-4">
+            <StatusGrid
+              items={[
+                { label: "Graph API", value: status.data.api_base_url },
+                { label: "Targets", value: status.data.configured_targets.length },
+                {
+                  label: "Latest run",
+                  value: status.data.latest_ingestion_status ?? "Not available",
+                },
+              ]}
+            />
+            <div className="rounded-[1rem] border border-[color:var(--border)] bg-white p-4">
+              <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
+                Configured targets
+              </p>
+              <div className="mt-3 grid gap-3 md:grid-cols-2">
+                {status.data.configured_targets.map((target: EUNICETargetOrganization) => (
+                  <label
+                    key={target.key}
+                    className="flex items-start gap-3 rounded-[1rem] border border-[color:var(--border)] px-4 py-3 text-sm text-zinc-700"
+                  >
+                    <input
+                      type="checkbox"
+                      value={target.key}
+                      {...register("target_organization_keys")}
+                      className="mt-1"
+                    />
+                    <span className="space-y-1">
+                      <span className="block font-semibold text-ink">{target.display_name}</span>
+                      <span className="block text-xs uppercase tracking-[0.18em] text-zinc-500">
+                        {target.key}
+                        {target.country_code ? ` · ${target.country_code}` : ""}
+                      </span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+              <p className="mt-3 text-xs text-zinc-500">
+                Leave every target unchecked to load the full configured EUNICE set.
+              </p>
+            </div>
+          </div>
+        ) : null}
+
+        <form
+          onSubmit={handleSubmit((values) =>
+            mutation.mutate({
+              target_organization_keys:
+                values.target_organization_keys.length > 0
+                  ? values.target_organization_keys
+                  : null,
+              max_publications_per_organization: optionalNumber(
+                values.max_publications_per_organization,
+              ),
+              publication_year_from: optionalNumber(values.publication_year_from),
+              publication_year_to: optionalNumber(values.publication_year_to),
+            }),
+          )}
+          className="space-y-3"
+        >
+          <div className="grid gap-3 md:grid-cols-3">
+            <input
+              {...register("max_publications_per_organization")}
+              className={inputClass}
+              inputMode="numeric"
+              placeholder="Max publications per target"
+            />
+            <input
+              {...register("publication_year_from")}
+              className={inputClass}
+              inputMode="numeric"
+              placeholder="Optional year from"
+            />
+            <input
+              {...register("publication_year_to")}
+              className={inputClass}
+              inputMode="numeric"
+              placeholder="Optional year to"
+            />
+          </div>
+          <button type="submit" disabled={mutation.isPending} className={buttonClass}>
+            Load EUNICE seed
+          </button>
+        </form>
+
+        <MutationFeedback
+          isPending={mutation.isPending}
+          isSuccess={mutation.isSuccess}
+          isError={mutation.isError}
+          error={mutation.error}
+          success="EUNICE seed completed and catalog caches were refreshed."
+        />
+
+        {mutation.data ? <JsonPreview value={mutation.data} /> : null}
       </div>
     </Panel>
   );
@@ -695,6 +827,7 @@ export function OperationsConsole() {
   return (
     <div className="space-y-6">
       <SeedOperations />
+      <EUNICESeedOperations />
       <NormalizationOperations />
       <EmbeddingsOperations />
       <GraphOperations />

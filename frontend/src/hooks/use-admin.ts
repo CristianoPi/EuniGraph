@@ -9,12 +9,14 @@ import {
   createOrganization,
   createPublication,
   createResearcher,
+  getEuniceSeedStatus,
   getCoauthorshipAdminStatus,
   getEmbeddingsProvider,
   getEmbeddingsStatus,
   getNormalizationStatus,
   getSeedStatus,
   getSemanticGraphAdminStatus,
+  loadEuniceSeed,
   listNormalizationFindings,
   loadAllEmbeddings,
   loadSeed,
@@ -23,6 +25,7 @@ import {
   runNormalization,
   type EmbeddingsBuildRequest,
   type EmbeddingsLoadAllRequest,
+  type EUNICESeedLoadRequest,
   type GraphBuildRequest,
   type NormalizationRunRequest,
   type OrganizationCreatePayload,
@@ -39,6 +42,7 @@ function useInvalidateAdminState() {
   return {
     seed() {
       void queryClient.invalidateQueries({ queryKey: queryKeys.adminSeedStatus });
+      void queryClient.invalidateQueries({ queryKey: queryKeys.adminEuniceSeedStatus });
       void queryClient.invalidateQueries({ queryKey: queryKeys.dashboardCounts });
       void queryClient.invalidateQueries({ queryKey: ["publications"] });
       void queryClient.invalidateQueries({ queryKey: ["researchers"] });
@@ -91,6 +95,13 @@ export function useAdminNormalizationStatus() {
   });
 }
 
+export function useAdminEuniceSeedStatus() {
+  return useQuery({
+    queryKey: queryKeys.adminEuniceSeedStatus,
+    queryFn: getEuniceSeedStatus,
+  });
+}
+
 export function useAdminNormalizationFindings() {
   return useQuery({
     queryKey: queryKeys.adminNormalizationFindings,
@@ -131,6 +142,15 @@ export function useLoadSeedMutation() {
 
   return useMutation({
     mutationFn: (payload: SeedLoadRequest) => loadSeed(payload),
+    onSuccess: invalidate.seed,
+  });
+}
+
+export function useLoadEuniceSeedMutation() {
+  const invalidate = useInvalidateAdminState();
+
+  return useMutation({
+    mutationFn: (payload: EUNICESeedLoadRequest) => loadEuniceSeed(payload),
     onSuccess: invalidate.seed,
   });
 }

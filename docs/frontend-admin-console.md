@@ -48,6 +48,8 @@ Supported operations:
 - inspect OpenAIRE Beginner's Kit seed status
 - load OpenAIRE seed data, optionally with `limit_per_file`
 - reset OpenAIRE seed data with explicit destructive-action confirmation
+- inspect EUNICE Graph seed status
+- load a targeted EUNICE demo dataset from the OpenAIRE Graph API
 - inspect normalization status
 - run normalization with optional notes
 - inspect latest normalization findings
@@ -88,6 +90,8 @@ Admin and workflow APIs:
 - `GET /api/v1/admin/seeds/openaire-beginners-kit/status`
 - `POST /api/v1/admin/seeds/openaire-beginners-kit/load`
 - `POST /api/v1/admin/seeds/openaire-beginners-kit/reset`
+- `GET /api/v1/admin/seeds/openaire-graph-eunice/status`
+- `POST /api/v1/admin/seeds/openaire-graph-eunice/load`
 - `GET /api/v1/admin/normalization/status`
 - `POST /api/v1/admin/normalization/run`
 - `GET /api/v1/admin/normalization/findings`
@@ -117,6 +121,15 @@ The admin console handles:
 - explicit warnings and confirmation checkboxes for destructive reset operations
 
 The current backend executes these workflows synchronously. The frontend therefore reports completion when the backend response returns; it does not implement realtime orchestration or background progress tracking.
+
+For the EUNICE seed, the operations view exposes:
+
+- the configured EUNICE target organizations
+- optional target subset selection
+- optional publication cap per target organization
+- optional publication year range
+
+The response preview intentionally exposes processed publication counts, new canonical rows and ambiguous-publication counts so the operator can understand how much of the demo dataset was actually materialized.
 
 ## 8. Current MVP Limits
 

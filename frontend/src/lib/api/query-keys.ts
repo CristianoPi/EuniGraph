@@ -24,6 +24,7 @@ export const queryKeys = {
   coauthorshipNode: (id: string) => ["coauthorship-node", id] as const,
   semanticNode: (id: string) => ["semantic-node", id] as const,
   adminSeedStatus: ["admin", "seed", "status"] as const,
+  adminEuniceSeedStatus: ["admin", "eunice-seed", "status"] as const,
   adminNormalizationStatus: ["admin", "normalization", "status"] as const,
   adminNormalizationFindings: ["admin", "normalization", "findings"] as const,
   adminEmbeddingsProvider: ["admin", "embeddings", "provider"] as const,

@@ -3,6 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from eunigraph.api.routers.admin import router as admin_router
+from eunigraph.api.routers.admin_eunice_seed import router as admin_eunice_seed_router
 from eunigraph.api.routers.coauthorship import router as coauthorship_router
 from eunigraph.api.routers.embeddings import router as embeddings_router
 from eunigraph.api.routers.health import router as health_router
@@ -23,4 +24,5 @@ api_router.include_router(coauthorship_router)
 api_router.include_router(semantic_graph_router)
 api_router.include_router(embeddings_router)
 api_router.include_router(admin_router)
+api_router.include_router(admin_eunice_seed_router)
 api_router.include_router(normalization_router)

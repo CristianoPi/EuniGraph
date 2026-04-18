@@ -86,6 +86,7 @@ The backend currently exposes these main endpoint families:
 
 ### Workflow and Admin
 - `/api/v1/admin/seeds/openaire-beginners-kit/*`
+- `/api/v1/admin/seeds/openaire-graph-eunice/*`
 - `/api/v1/admin/normalization/*`
 
 ### Embeddings
@@ -126,6 +127,9 @@ The backend currently follows these important choices:
 - modular monolith instead of microservices
 - canonical relational model in PostgreSQL, not direct exposure of raw OpenAIRE payloads
 - strong provenance via `source_record`
+- two distinct seed paths for MVP/demo data:
+  - local OpenAIRE Beginner's Kit archives
+  - targeted EUNICE seed via the OpenAIRE Graph API
 - provider-based embeddings abstraction
 - materialized graph pipelines rather than live rebuilds on every request
 - Qdrant used as vector infrastructure, not as the canonical metadata store

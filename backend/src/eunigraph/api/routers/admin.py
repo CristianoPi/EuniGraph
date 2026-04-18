@@ -52,7 +52,11 @@ def get_seed_status(
         "Run the local OpenAIRE Beginner's Kit seed workflow using "
         "the configured dataset path."
     ),
-    responses={400: COMMON_ERROR_RESPONSES[400]},
+    responses={
+        400: COMMON_ERROR_RESPONSES[400],
+        409: COMMON_ERROR_RESPONSES[409],
+        503: COMMON_ERROR_RESPONSES[503],
+    },
 )
 def load_seed(
     payload: OpenAireSeedLoadRequest,

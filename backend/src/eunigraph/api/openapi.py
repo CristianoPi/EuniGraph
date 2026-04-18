@@ -53,6 +53,10 @@ COMMON_ERROR_RESPONSES = {
         "model": ApiErrorResponse,
         "description": "The request is syntactically valid but violates application rules.",
     },
+    409: {
+        "model": ApiErrorResponse,
+        "description": "The request conflicts with the current application or persistence state.",
+    },
     404: {
         "model": ApiErrorResponse,
         "description": "The requested resource or materialized artifact was not found.",

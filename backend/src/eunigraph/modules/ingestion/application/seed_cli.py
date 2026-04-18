@@ -3,6 +3,7 @@ from __future__ import annotations
 import argparse
 import json
 from collections.abc import Mapping
+from dataclasses import asdict
 
 from eunigraph.core.config import get_settings
 from eunigraph.modules.ingestion.application.openaire_beginners_kit import (
@@ -28,7 +29,7 @@ def main() -> None:
         elif args.command == "reset":
             result = seeder.reset()
         else:
-            result = seeder.get_status().__dict__
+            result = asdict(seeder.get_status())
         print(json.dumps(result, default=str, indent=2))
     finally:
         session.close()

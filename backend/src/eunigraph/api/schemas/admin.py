@@ -30,6 +30,7 @@ class OpenAireSeedLoadResponse(BaseModel):
 class OpenAireSeedResetResponse(BaseModel):
     publication_author: int
     publication_organization: int
+    researcher_affiliation: int
     external_identifier: int
     publication: int
     researcher: int

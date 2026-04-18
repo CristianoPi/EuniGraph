@@ -49,6 +49,22 @@ class Settings(BaseSettings):
         default=Path("./data/openaire/beginners_kit"),
         alias="OPENAIRE_BEGINNERS_KIT_PATH",
     )
+    openaire_graph_api_base_url: str = Field(
+        default="https://api.openaire.eu/graph",
+        alias="OPENAIRE_GRAPH_API_BASE_URL",
+    )
+    openaire_graph_api_timeout_seconds: int = Field(
+        default=30,
+        alias="OPENAIRE_GRAPH_API_TIMEOUT_SECONDS",
+    )
+    openaire_graph_api_page_size: int = Field(
+        default=25,
+        alias="OPENAIRE_GRAPH_API_PAGE_SIZE",
+    )
+    openaire_eunice_seed_max_publications_per_organization: int = Field(
+        default=50,
+        alias="OPENAIRE_EUNICE_SEED_MAX_PUBLICATIONS_PER_ORGANIZATION",
+    )
     coauthorship_graph_storage_path: Path = Field(
         default=Path("./data/graphs/coauthorship"),
         alias="EUNIGRAPH_COAUTHORSHIP_GRAPH_STORAGE_PATH",
@@ -80,6 +96,7 @@ class Settings(BaseSettings):
         "embeddings_provider",
         "embeddings_model",
         "embeddings_version",
+        "openaire_graph_api_base_url",
         mode="before",
     )
     @classmethod

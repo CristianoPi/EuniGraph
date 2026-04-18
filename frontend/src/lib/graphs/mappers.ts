@@ -48,7 +48,7 @@ export function getCoauthorshipOrganizationColor(organizationKey: string | null 
   const hue = hash % 360;
   const saturation = 46 + (hash % 8);
   const lightness = 48 + ((hash >> 3) % 8);
-  return `hsl(${hue} ${saturation}% ${lightness}%)`;
+  return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
 function coauthorshipNodeToElement(node: CoauthorshipNode): ElementDefinition {

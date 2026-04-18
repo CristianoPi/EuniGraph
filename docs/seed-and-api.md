@@ -47,6 +47,69 @@ Seed runtime logging now emits:
 - processed record counters
 - readable failure context including phase, archive and processed record count
 
+## OpenAIRE Graph EUNICE Seed Path
+
+The backend now also exposes a targeted seed workflow for demo-oriented datasets:
+
+- source type: `openaire_graph_eunice`
+- logical source name: `OpenAIRE Graph EUNICE Seed`
+- default Graph API base URL: `https://api.openaire.eu/graph`
+
+Relevant configuration:
+
+- `OPENAIRE_GRAPH_API_BASE_URL`
+- `OPENAIRE_GRAPH_API_TIMEOUT_SECONDS`
+- `OPENAIRE_GRAPH_API_PAGE_SIZE`
+- `OPENAIRE_EUNICE_SEED_MAX_PUBLICATIONS_PER_ORGANIZATION`
+
+The workflow resolves a configured list of EUNICE organizations through the OpenAIRE Graph API and then fetches only research products filtered by:
+
+- `relOrganizationId=<resolved OpenAIRE organization id>`
+- `type=publication`
+
+Current configured target keys:
+
+- `unict`
+- `btu`
+- `cantabria`
+- `umons`
+- `peloponnese`
+- `poznan-tech`
+- `vaasa`
+- `viseu`
+- `mub`
+
+Alias handling is intentionally local and explicit in the ingestion module so the target list is easy to extend without changing the canonical model.
+
+## EUNICE Seed Scope
+
+The EUNICE seed imports only data relevant to the configured target organizations:
+
+- target `organization` rows
+- `publication` rows connected to those organizations
+- `researcher` rows derived from publication author metadata
+- `publication_author`
+- `publication_organization`
+- `researcher_affiliation` derived through a demo-focused rule
+- `external_identifier`
+- provenance in `source_record`
+
+It does not depend on the local Beginner's Kit archives.
+
+## EUNICE Affiliation Rule
+
+OpenAIRE Graph publications expose organizations linked to the publication, but the API path used for the MVP does not provide a direct per-author affiliation assignment that is stable enough for the canonical model.
+
+The current EUNICE seed therefore applies a deliberate demo heuristic:
+
+- only configured EUNICE target organizations are materialized from this workflow
+- a publication can accumulate one or more target organizations while the seed iterates through the selected targets
+- if a publication ends up linked to exactly one target organization, all imported authors of that publication receive a `researcher_affiliation` to that organization
+- if a publication is linked to multiple target organizations, the case is treated as ambiguous and no `researcher_affiliation` is derived from that publication
+- when a researcher ends up with exactly one affiliation in the loaded dataset slice, `researcher.primary_organization_id` is also aligned automatically by the existing canonical helper
+
+This keeps the dataset small and useful for demo browsing and coauthorship coloring without pretending to solve full person-level affiliation resolution.
+
 ## Current Seed Scope
 
 The seed currently reads and persists raw provenance from:
@@ -121,6 +184,8 @@ Development seed/admin endpoints:
 - `GET /api/v1/admin/seeds/openaire-beginners-kit/status`
 - `POST /api/v1/admin/seeds/openaire-beginners-kit/load`
 - `POST /api/v1/admin/seeds/openaire-beginners-kit/reset`
+- `GET /api/v1/admin/seeds/openaire-graph-eunice/status`
+- `POST /api/v1/admin/seeds/openaire-graph-eunice/load`
 - `POST /api/v1/admin/normalization/run`
 - `GET /api/v1/admin/normalization/status`
 - `GET /api/v1/admin/normalization/findings`
@@ -218,6 +283,12 @@ Current behavior:
 - `400` for dataset path or archive validation problems, and for archive/parsing failures
 - `409` for database persistence conflicts or schema-bound data issues encountered during ingestion
 - `503` for resource exhaustion such as `MemoryError`
+
+For the EUNICE Graph seed specifically:
+
+- `400` is used for invalid target keys, unresolved configured organizations, or invalid year ranges
+- `409` is used for canonical persistence conflicts
+- `503` is used for OpenAIRE Graph API transport or response-shape failures
 
 Readable seed failures include:
 - failure category

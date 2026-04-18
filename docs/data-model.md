@@ -236,7 +236,7 @@ Primary mapping used by the MVP:
 - OpenAIRE `datasource`
   maps to `data_source`, `source_record`
 - OpenAIRE `relation`
-  maps to `publication_organization`, `researcher_affiliation`, plus `source_record`
+  maps to `publication_organization`, conservative derived `researcher_affiliation`, plus `source_record`
 
 The canonical PostgreSQL model intentionally does not mirror each OpenAIRE payload structure directly.
 
@@ -245,6 +245,7 @@ Instead:
 - canonical entities simplify the application layer
 - multiple OpenAIRE identifiers are preserved through first-class columns when operationally important and through `external_identifier` for everything else
 - OpenAIRE relation semantics that matter immediately to the MVP are materialized in dedicated bridge tables
+- `researcher_affiliation` is only derived when a result-organization affiliation relation can be attached to a publication with exactly one canonical author; ambiguous multi-author cases remain unresolved in the seed
 
 ## Query Support
 

@@ -36,6 +36,17 @@ uv run python -m eunigraph.modules.ingestion.application.seed_cli status
 uv run python -m eunigraph.modules.ingestion.application.seed_cli reset
 ```
 
+Current verified behavior:
+- `limit_per_file=200` completes successfully
+- `limit_per_file=500` completes successfully in the current development dataset
+- the CLI `status` command returns the dataclass payload correctly
+
+Seed runtime logging now emits:
+- seed start with dataset path and `limit_per_file`
+- archive phase start, progress and completion
+- processed record counters
+- readable failure context including phase, archive and processed record count
+
 ## Current Seed Scope
 
 The seed currently reads and persists raw provenance from:
@@ -51,11 +62,33 @@ Canonical entities currently populated by the seed:
 - `organization`
 - `publication_author`
 - `publication_organization`
+- `researcher_affiliation` for conservative derived cases
 - `external_identifier`
 - raw provenance tables
 
 Current deliberate limit:
 - `project.tar` and `datasource.tar` are preserved in `source_record` but not yet mapped to canonical tables beyond the logical `data_source` record used for ingestion provenance
+
+Loader robustness notes:
+- raw OpenAIRE payloads remain preserved in `source_record.raw_payload`
+- duplicate `source_record` identifiers inside the same ingestion run are skipped and logged instead of failing the entire seed
+- conflicting external publication identifiers are skipped and logged when the same `(entity_type, identifier_type, identifier_value)` reappears for a different canonical publication in the same run
+- unique-field collisions on canonical entities are handled conservatively during the seed:
+  - `organization.ror_id`
+  - `organization.openaire_id`
+  - `researcher.orcid`
+  - `publication.doi`
+  - `publication.openaire_id`
+  conflicting values are skipped and logged instead of aborting the run
+- bounded canonical text fields are clipped conservatively when source values exceed schema column lengths
+- author links are deduplicated per publication before insert
+- duplicate or invalid author ranks are normalized to the next available `author_position`
+- `publication.language_code` prefers compact codes such as `eng` over verbose labels such as `English`
+- duplicate publication-organization relations inside the same run are skipped and logged
+- `researcher_affiliation` is derived only from `relation.tar` affiliation relations that connect one publication to one organization and can be linked to a publication with exactly one canonical author
+- when a researcher receives exactly one derived organization across the loaded seed slice, that organization is also assigned to `researcher.primary_organization_id`
+- multi-author affiliation relations remain intentionally unresolved because the Beginner's Kit relation does not identify which author matches which organization
+- `limit_per_file` is applied independently per archive, so small partial loads can produce poor cross-archive overlap and therefore under-populate relation-derived tables such as `publication_organization` and `researcher_affiliation`
 
 ## Available APIs
 
@@ -177,6 +210,24 @@ This makes it possible to inspect, for example:
 - only manual API provenance with `source_type=manual_api_entry`
 - all provenance rows linked to one canonical entity with `canonical_entity_id=<uuid>`
 
+## Seed Failure Semantics
+
+The OpenAIRE seed loader should no longer fail with an opaque generic `500` for the known ingestion-path issues addressed in the MVP.
+
+Current behavior:
+- `400` for dataset path or archive validation problems, and for archive/parsing failures
+- `409` for database persistence conflicts or schema-bound data issues encountered during ingestion
+- `503` for resource exhaustion such as `MemoryError`
+
+Readable seed failures include:
+- failure category
+- execution stage
+- archive name when available
+- processed record count when available
+- `limit_per_file` when set
+
+Failed ingestion runs are also persisted with `status=failed`, `completed_at`, and contextual notes so the last run status remains inspectable after rollback.
+
 ## Coauthorship Materialization
 
 The coauthorship graph is materialized from canonical PostgreSQL data and then served from persisted artifacts.
@@ -270,7 +321,9 @@ The Qdrant payload is intentionally publication-centric. It includes the semanti
 - no automatic download of the Beginner's Kit
 - no canonical `project` API yet
 - no canonical `datasource` entity API for OpenAIRE datasource records yet
-- relation-to-affiliation mapping is intentionally conservative; publication-organization mapping is the primary relation materialized from `relation.tar` in the MVP
+- relation-to-affiliation mapping remains intentionally conservative:
+  - `publication_organization` is materialized directly from result-organization relations
+  - `researcher_affiliation` is derived only for unambiguous solo-author publication cases
 - manual provenance for `researcher` and `organization` is stored in `source_record` but those entities do not yet have a direct foreign key to the latest provenance row
 - coauthorship graph rebuilds are explicit API operations; there is no automatic rebuild trigger yet
 - subgraph filtering currently uses materialized node metadata and edge weights, not dynamic graph recomputation

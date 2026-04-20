@@ -16,13 +16,17 @@ from sqlalchemy.orm import Session, joinedload
 
 from eunigraph.core.config import Settings
 from eunigraph.modules.catalog.infrastructure.models import (
+    OrganizationModel,
     PublicationAuthorModel,
     PublicationModel,
+    ResearcherAffiliationModel,
     ResearcherModel,
 )
 from eunigraph.modules.coauthorship.infrastructure.models import (
     CoauthorshipGraphBuildModel,
 )
+from eunigraph.shared.eunice import EUNICE_UNIVERSITY_SPECS, EUNICEUniversitySpec
+from eunigraph.shared.utils import normalize_text
 
 GRAPH_TYPE = "coauthorship"
 BUILD_STATUS_COMPLETED = "completed"
@@ -57,6 +61,8 @@ class CoauthorshipGraphService:
         self.session = session
         self.settings = settings
         self.storage_path = settings.coauthorship_graph_storage_path
+        self._organization_cache: dict[UUID, OrganizationModel | None] = {}
+        self._researcher_affiliation_cache: dict[UUID, list[ResearcherAffiliationModel]] = {}
 
     def build(
         self,
@@ -403,6 +409,7 @@ class CoauthorshipGraphService:
             publication = authorship.publication
             researcher_id = str(researcher.id)
             primary_organization = researcher.primary_organization
+            eunice_university = self._resolve_researcher_eunice_university(researcher)
             if include_isolated_nodes or publication is not None:
                 node_map[researcher_id] = {
                     "id": researcher_id,
@@ -415,6 +422,9 @@ class CoauthorshipGraphService:
                     "primary_organization_name": (
                         primary_organization.name if primary_organization is not None else None
                     ),
+                    "university_code": eunice_university.code if eunice_university else None,
+                    "university_name": eunice_university.name if eunice_university else None,
+                    "is_eunice_university": eunice_university is not None,
                 }
             authors_by_publication[authorship.publication_id].append(authorship)
 
@@ -606,15 +616,6 @@ class CoauthorshipGraphService:
             nodes,
             key=lambda node: (-node["strength"], -node["degree"], node["label"]),
         )
-        palette = [
-            "#0f766e",
-            "#0ea5e9",
-            "#f59e0b",
-            "#ef4444",
-            "#8b5cf6",
-            "#84cc16",
-            "#ec4899",
-        ]
         positions: dict[str, tuple[float, float]] = {}
         for node in sorted_nodes:
             positions[node["id"]] = self._scatter_position(
@@ -636,10 +637,7 @@ class CoauthorshipGraphService:
         node_elements = []
         for node in sorted_nodes:
             x, y = positions[node["id"]]
-            component_id = node.get("community_id")
-            if component_id is None:
-                component_id = node.get("component_id", 0)
-            color = palette[int(component_id or 0) % len(palette)]
+            color = self._node_display_color(node)
             size = 1.8 + min(node["strength"], 12) * 0.3
             node_elements.append(
                 f'<circle cx="{x:.2f}" cy="{y:.2f}" r="{size:.2f}" fill="{color}" '
@@ -694,6 +692,7 @@ class CoauthorshipGraphService:
                     {
                         "id": node["id"],
                         "primary_organization_id": node["primary_organization_id"],
+                        "university_code": node.get("university_code"),
                     }
                     for node in nodes
                 ),
@@ -866,3 +865,130 @@ class CoauthorshipGraphService:
 
     def _isoformat_or_none(self, value: datetime | None) -> str | None:
         return value.isoformat() if value is not None else None
+
+    def _node_display_color(self, node: dict[str, Any]) -> str:
+        university_code = node.get("university_code")
+        if isinstance(university_code, str):
+            for spec in EUNICE_UNIVERSITY_SPECS:
+                if spec.code == university_code:
+                    return spec.color
+        return "#a1a1aa"
+
+    def _resolve_researcher_eunice_university(
+        self,
+        researcher: ResearcherModel,
+    ) -> EUNICEUniversitySpec | None:
+        primary_match = self._resolve_organization_eunice_university(
+            researcher.primary_organization,
+        )
+        if primary_match is not None:
+            return primary_match
+
+        affiliation_matches = {
+            match.code: match
+            for match in (
+                self._resolve_organization_eunice_university(affiliation.organization)
+                for affiliation in self._researcher_affiliations(researcher.id)
+            )
+            if match is not None
+        }
+        if len(affiliation_matches) == 1:
+            return next(iter(affiliation_matches.values()))
+        return None
+
+    def _researcher_affiliations(self, researcher_id: UUID) -> list[ResearcherAffiliationModel]:
+        cached = self._researcher_affiliation_cache.get(researcher_id)
+        if cached is not None:
+            return cached
+
+        affiliations = list(
+            self.session.scalars(
+                select(ResearcherAffiliationModel)
+                .options(joinedload(ResearcherAffiliationModel.organization))
+                .where(ResearcherAffiliationModel.researcher_id == researcher_id)
+            )
+        )
+        self._researcher_affiliation_cache[researcher_id] = affiliations
+        return affiliations
+
+    def _resolve_organization_eunice_university(
+        self,
+        organization: OrganizationModel | None,
+    ) -> EUNICEUniversitySpec | None:
+        if organization is None:
+            return None
+
+        lineage = self._organization_lineage(organization)
+        scores: dict[str, tuple[int, EUNICEUniversitySpec]] = {}
+        for candidate in lineage:
+            candidate_name = normalize_text(candidate.name)
+            if not candidate_name and candidate.normalized_name:
+                candidate_name = candidate.normalized_name
+            for spec in EUNICE_UNIVERSITY_SPECS:
+                score = self._organization_match_score(candidate_name, candidate.country_code, spec)
+                if score <= 0:
+                    continue
+                current = scores.get(spec.code)
+                if current is None or score > current[0]:
+                    scores[spec.code] = (score, spec)
+
+        if not scores:
+            return None
+
+        ordered = sorted(scores.values(), key=lambda item: item[0], reverse=True)
+        if len(ordered) > 1 and ordered[0][0] == ordered[1][0]:
+            return None
+        return ordered[0][1]
+
+    def _organization_lineage(self, organization: OrganizationModel) -> list[OrganizationModel]:
+        lineage: list[OrganizationModel] = []
+        visited: set[UUID] = set()
+        current: OrganizationModel | None = organization
+
+        while current is not None and current.id not in visited:
+            visited.add(current.id)
+            lineage.append(current)
+            if current.parent_organization is not None:
+                current = current.parent_organization
+                continue
+            parent_id = current.parent_organization_id
+            if parent_id is None:
+                break
+            current = self._cached_organization(parent_id)
+
+        return lineage
+
+    def _cached_organization(self, organization_id: UUID) -> OrganizationModel | None:
+        if organization_id in self._organization_cache:
+            return self._organization_cache[organization_id]
+        organization = self.session.get(OrganizationModel, organization_id)
+        self._organization_cache[organization_id] = organization
+        return organization
+
+    def _organization_match_score(
+        self,
+        candidate_name: str,
+        country_code: str | None,
+        spec: EUNICEUniversitySpec,
+    ) -> int:
+        if not candidate_name:
+            return 0
+
+        best_score = 0
+        for alias in spec.normalized_aliases:
+            if candidate_name == alias:
+                best_score = max(best_score, 120)
+                continue
+            if alias in candidate_name:
+                best_score = max(best_score, 100)
+                continue
+            if candidate_name in alias and len(candidate_name) >= 10:
+                best_score = max(best_score, 80)
+
+        if best_score == 0:
+            return 0
+        if spec.country_code and country_code == spec.country_code:
+            best_score += 10
+        elif spec.country_code and country_code and country_code != spec.country_code:
+            best_score -= 25
+        return best_score

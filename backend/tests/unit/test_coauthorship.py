@@ -13,6 +13,7 @@ from eunigraph.modules.catalog.infrastructure.models import (
     OrganizationModel,
     PublicationAuthorModel,
     PublicationModel,
+    ResearcherAffiliationModel,
     ResearcherModel,
 )
 from eunigraph.modules.coauthorship.application import CoauthorshipGraphService
@@ -20,11 +21,27 @@ from eunigraph.persistence.postgres import models  # noqa: F401
 
 
 class FakeSession:
-    def __init__(self, values: Sequence[object]) -> None:
+    def __init__(
+        self,
+        values: Sequence[object],
+        *,
+        affiliation_values: dict[UUID, Sequence[object]] | None = None,
+        get_values: dict[UUID, object] | None = None,
+    ) -> None:
         self._values = values
+        self._affiliation_values = dict(affiliation_values or {})
+        self._get_values = dict(get_values or {})
 
     def scalars(self, _query: object) -> list[object]:
+        query_repr = str(_query)
+        if "researcher_affiliation" in query_repr:
+            if not self._affiliation_values:
+                return []
+            return list(next(iter(self._affiliation_values.values())))
         return list(self._values)
+
+    def get(self, _model: object, key: UUID) -> object | None:
+        return self._get_values.get(key)
 
 
 def _settings() -> Any:
@@ -135,6 +152,7 @@ def test_collect_graph_inputs_builds_weighted_edges_and_optional_isolated_nodes(
     bc_key = (bc_sorted[0], bc_sorted[1])
     assert edges[ac_key]["weight"] == 1
     assert edges[bc_key]["weight"] == 1
+    assert with_isolated_nodes[str(researcher_a.id)]["university_code"] is None
 
 
 def test_filter_subgraph_researcher_and_weight_limit() -> None:
@@ -256,6 +274,95 @@ def test_render_svg_outputs_placeholder_for_empty_graph() -> None:
 
     assert "No coauthorship graph has been materialized yet" in svg
     assert svg.startswith("<svg")
+
+
+def test_resolve_researcher_eunice_university_uses_primary_organization() -> None:
+    organization = OrganizationModel(
+        id=uuid4(),
+        name="University of Catania",
+        normalized_name="university of catania",
+        country_code="IT",
+    )
+    researcher = ResearcherModel(
+        id=uuid4(),
+        full_name="Ada Lovelace",
+        normalized_name="ada lovelace",
+        primary_organization=organization,
+    )
+    service = CoauthorshipGraphService(cast(Session, FakeSession([])), _settings())
+
+    university = service._resolve_researcher_eunice_university(researcher)
+
+    assert university is not None
+    assert university.code == "unict"
+
+
+def test_resolve_researcher_eunice_university_uses_parent_organization_lineage() -> None:
+    parent = OrganizationModel(
+        id=uuid4(),
+        name="Université de Mons",
+        normalized_name="universite de mons",
+        country_code="BE",
+    )
+    child = OrganizationModel(
+        id=uuid4(),
+        name="Faculty of Engineering, Université de Mons",
+        normalized_name="faculty of engineering universite de mons",
+        country_code="BE",
+        parent_organization=parent,
+        parent_organization_id=parent.id,
+    )
+    researcher = ResearcherModel(
+        id=uuid4(),
+        full_name="Grace Hopper",
+        normalized_name="grace hopper",
+        primary_organization=child,
+    )
+    service = CoauthorshipGraphService(cast(Session, FakeSession([])), _settings())
+
+    university = service._resolve_researcher_eunice_university(researcher)
+
+    assert university is not None
+    assert university.code == "umons"
+
+
+def test_resolve_researcher_eunice_university_skips_ambiguous_affiliations() -> None:
+    researcher = ResearcherModel(
+        id=uuid4(),
+        full_name="Alan Turing",
+        normalized_name="alan turing",
+    )
+    affiliation_one = ResearcherAffiliationModel(
+        researcher_id=researcher.id,
+        organization_id=uuid4(),
+        organization=OrganizationModel(
+            id=uuid4(),
+            name="University of Vaasa",
+            normalized_name="university of vaasa",
+            country_code="FI",
+        ),
+        is_primary=False,
+    )
+    affiliation_two = ResearcherAffiliationModel(
+        researcher_id=researcher.id,
+        organization_id=uuid4(),
+        organization=OrganizationModel(
+            id=uuid4(),
+            name="University of Catania",
+            normalized_name="university of catania",
+            country_code="IT",
+        ),
+        is_primary=False,
+    )
+    session = FakeSession(
+        [],
+        affiliation_values={researcher.id: [affiliation_one, affiliation_two]},
+    )
+    service = CoauthorshipGraphService(cast(Session, session), _settings())
+
+    university = service._resolve_researcher_eunice_university(researcher)
+
+    assert university is None
 
 
 def test_render_svg_for_graph_uses_scatter_layout_without_labels() -> None:

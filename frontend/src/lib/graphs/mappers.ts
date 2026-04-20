@@ -16,6 +16,9 @@ export type ExplorerNodeData = {
   strength: number;
   subtitle: string;
   nodeColor: string;
+  universityCode?: string | null;
+  universityName?: string | null;
+  isEuniceUniversity?: boolean;
   organizationKey?: string | null;
   organizationName?: string | null;
 };
@@ -31,6 +34,19 @@ export type ExplorerEdgeData = {
 
 export const COAUTHORSHIP_FALLBACK_COLOR = "#a1a1aa";
 
+export const EUNICE_UNIVERSITY_COLORS: Record<string, string> = {
+  karlstad: "#F4E600",
+  vaasa: "#F5C439",
+  btu: "#A6C60D",
+  "poznan-tech": "#00618E",
+  unict: "#007DCB",
+  peloponnese: "#A51317",
+  cantabria: "#438D96",
+  viseu: "#010101",
+  umons: "#B60038",
+  uphf: "#46B6C6",
+};
+
 function hashString(value: string): number {
   let hash = 0;
   for (let index = 0; index < value.length; index += 1) {
@@ -39,11 +55,12 @@ function hashString(value: string): number {
   return hash;
 }
 
-export function getCoauthorshipOrganizationColor(organizationKey: string | null | undefined): string {
+export function getCoauthorshipOrganizationColor(
+  organizationKey: string | null | undefined,
+): string {
   if (!organizationKey) {
     return COAUTHORSHIP_FALLBACK_COLOR;
   }
-
   const hash = hashString(organizationKey);
   const hue = hash % 360;
   const saturation = 46 + (hash % 8);
@@ -51,8 +68,19 @@ export function getCoauthorshipOrganizationColor(organizationKey: string | null 
   return `hsl(${hue}, ${saturation}%, ${lightness}%)`;
 }
 
+export function getCoauthorshipUniversityColor(universityCode: string | null | undefined): string {
+  if (!universityCode) {
+    return COAUTHORSHIP_FALLBACK_COLOR;
+  }
+  return EUNICE_UNIVERSITY_COLORS[universityCode] ?? COAUTHORSHIP_FALLBACK_COLOR;
+}
+
 function coauthorshipNodeToElement(node: CoauthorshipNode): ElementDefinition {
+  const universityCode = node.university_code ?? null;
   const organizationKey = node.primary_organization_id ?? null;
+  const nodeColor = universityCode
+    ? getCoauthorshipUniversityColor(universityCode)
+    : getCoauthorshipOrganizationColor(organizationKey);
   return {
     data: {
       id: node.id,
@@ -60,8 +88,11 @@ function coauthorshipNodeToElement(node: CoauthorshipNode): ElementDefinition {
       layer: "coauthorship",
       degree: node.degree,
       strength: node.strength,
-      subtitle: node.primary_organization_name ?? "Researcher node",
-      nodeColor: getCoauthorshipOrganizationColor(organizationKey),
+      subtitle: node.university_name ?? node.primary_organization_name ?? "Researcher node",
+      nodeColor,
+      universityCode,
+      universityName: node.university_name ?? null,
+      isEuniceUniversity: node.is_eunice_university,
       organizationKey,
       organizationName: node.primary_organization_name ?? null,
       size: Math.max(22, Math.min(54, 18 + node.degree * 1.8)),

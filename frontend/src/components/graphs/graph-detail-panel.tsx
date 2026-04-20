@@ -56,6 +56,7 @@ export function GraphDetailPanel({
               { label: "Degree", value: node.degree },
               { label: "Strength", value: node.strength },
               { label: "Betweenness", value: node.betweenness.toFixed(4) },
+              { label: "EUNICE university", value: node.university_name ?? "n/a" },
               { label: "Organization", value: node.primary_organization_name ?? "n/a" },
               { label: "Community", value: node.community_id ?? "n/a" },
               { label: "Component", value: node.component_id ?? "n/a" },

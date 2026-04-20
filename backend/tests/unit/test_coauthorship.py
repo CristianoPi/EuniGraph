@@ -159,7 +159,8 @@ def test_collect_graph_inputs_builds_weighted_edges_and_optional_isolated_nodes(
     assert with_isolated_nodes[str(researcher_a.id)]["university_code"] is None
 
 
-def test_collect_graph_inputs_uses_single_affiliation_when_primary_organization_is_missing() -> None:
+def test_collect_graph_inputs_uses_single_affiliation_when_primary_organization_is_missing(
+) -> None:
     organization = OrganizationModel(
         id=uuid4(),
         name="Independent Research Institute",

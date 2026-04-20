@@ -321,7 +321,7 @@ function EUNICESeedOperations() {
   });
 
   return (
-    <Panel title="EUNICE seed" description="Targeted OpenAIRE Graph import.">
+    <Panel title="EUNICE seed" description="Community-scoped OpenAIRE Graph v2 import.">
       <div className="space-y-5">
         {status.isLoading ? (
           <LoadingState label="Loading EUNICE seed status..." />

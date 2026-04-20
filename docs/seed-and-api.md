@@ -49,7 +49,7 @@ Seed runtime logging now emits:
 
 ## OpenAIRE Graph EUNICE Seed Path
 
-The backend now also exposes a targeted seed workflow for demo-oriented datasets:
+The backend now also exposes a community-scoped seed workflow for demo-oriented datasets:
 
 - source type: `openaire_graph_eunice`
 - logical source name: `OpenAIRE Graph EUNICE Seed`

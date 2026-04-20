@@ -159,6 +159,49 @@ def test_collect_graph_inputs_builds_weighted_edges_and_optional_isolated_nodes(
     assert with_isolated_nodes[str(researcher_a.id)]["university_code"] is None
 
 
+def test_collect_graph_inputs_uses_single_affiliation_when_primary_organization_is_missing() -> None:
+    organization = OrganizationModel(
+        id=uuid4(),
+        name="Independent Research Institute",
+        normalized_name="independent research institute",
+    )
+    researcher = ResearcherModel(
+        id=uuid4(),
+        full_name="Ada Lovelace",
+        normalized_name="ada lovelace",
+    )
+    publication = PublicationModel(
+        id=uuid4(),
+        title="Paper One",
+        normalized_title="paper one",
+        publication_year=2024,
+    )
+    authorship = PublicationAuthorModel(
+        publication_id=publication.id,
+        researcher_id=researcher.id,
+        author_position=1,
+        publication=publication,
+        researcher=researcher,
+    )
+    affiliation = ResearcherAffiliationModel(
+        researcher_id=researcher.id,
+        organization_id=organization.id,
+        organization=organization,
+        is_primary=False,
+    )
+    session = FakeSession(
+        [authorship],
+        affiliation_values={researcher.id: [affiliation]},
+    )
+    service = CoauthorshipGraphService(cast(Session, session), _settings())
+
+    nodes, _edges = service._collect_graph_inputs(include_isolated_nodes=True)
+
+    node = nodes[str(researcher.id)]
+    assert node["primary_organization_id"] == str(organization.id)
+    assert node["primary_organization_name"] == "Independent Research Institute"
+
+
 def test_filter_subgraph_researcher_and_weight_limit() -> None:
     service = CoauthorshipGraphService(cast(Session, FakeSession([])), _settings())
     center_id = str(uuid4())
@@ -251,6 +294,85 @@ def test_filter_subgraph_researcher_and_weight_limit() -> None:
     assert subgraph["summary"]["node_count"] == 2
     assert subgraph["summary"]["edge_count"] == 1
     assert {node["id"] for node in subgraph["nodes"]} == {center_id, neighbor_heavy_id}
+
+
+def test_filter_subgraph_prioritizes_attributed_nodes_when_max_nodes_is_applied() -> None:
+    service = CoauthorshipGraphService(cast(Session, FakeSession([])), _settings())
+    payload = {
+        "build_id": str(uuid4()),
+        "graph_type": "coauthorship",
+        "generated_at": "2026-04-20T10:00:00+00:00",
+        "summary": {
+            "node_count": 3,
+            "edge_count": 0,
+            "component_count": 3,
+            "community_count": 1,
+            "graph_version": "abc123",
+        },
+        "data_snapshot": {},
+        "nodes": [
+            {
+                "id": "unattributed-strong",
+                "label": "Unattributed Strong",
+                "full_name": "Unattributed Strong",
+                "normalized_name": "unattributed strong",
+                "primary_organization_id": None,
+                "primary_organization_name": None,
+                "university_code": None,
+                "university_name": None,
+                "degree": 40,
+                "strength": 80,
+                "betweenness": 1.0,
+                "component_id": 0,
+                "community_id": 0,
+            },
+            {
+                "id": "attributed-medium",
+                "label": "Attributed Medium",
+                "full_name": "Attributed Medium",
+                "normalized_name": "attributed medium",
+                "primary_organization_id": "org-1",
+                "primary_organization_name": "University of Catania",
+                "university_code": "unict",
+                "university_name": "University of Catania",
+                "degree": 10,
+                "strength": 20,
+                "betweenness": 0.5,
+                "component_id": 1,
+                "community_id": 0,
+            },
+            {
+                "id": "attributed-light",
+                "label": "Attributed Light",
+                "full_name": "Attributed Light",
+                "normalized_name": "attributed light",
+                "primary_organization_id": "org-2",
+                "primary_organization_name": "Independent Research Institute",
+                "university_code": None,
+                "university_name": None,
+                "degree": 5,
+                "strength": 10,
+                "betweenness": 0.2,
+                "component_id": 2,
+                "community_id": 0,
+            },
+        ],
+        "edges": [],
+    }
+
+    subgraph = service._filter_subgraph(
+        payload,
+        researcher_id=None,
+        organization_id=None,
+        max_nodes=2,
+        min_edge_weight=None,
+        community_id=None,
+    )
+
+    assert {node["id"] for node in subgraph["nodes"]} == {
+        "attributed-medium",
+        "attributed-light",
+    }
 
 
 def test_compute_graph_version_is_stable_for_equivalent_inputs() -> None:
@@ -417,6 +539,20 @@ def test_render_svg_for_graph_uses_scatter_layout_without_labels() -> None:
     assert "<text" not in svg
     assert 'r="2.70"' in svg
     assert 'r="2.10"' in svg
+
+
+def test_node_display_color_uses_organization_fallback_when_university_is_missing() -> None:
+    service = CoauthorshipGraphService(cast(Session, FakeSession([])), _settings())
+
+    color = service._node_display_color(
+        {
+            "id": "researcher-a",
+            "primary_organization_id": "organization-1",
+            "university_code": None,
+        }
+    )
+
+    assert color.startswith("hsl(")
 
 
 def test_coauthorship_subgraph_accepts_more_than_1000_nodes(monkeypatch: Any) -> None:

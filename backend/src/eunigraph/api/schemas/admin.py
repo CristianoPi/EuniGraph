@@ -40,24 +40,18 @@ class OpenAireSeedResetResponse(BaseModel):
     data_source: int
 
 
-class EUNICETargetOrganizationResponse(BaseModel):
-    key: str
-    display_name: str
-    aliases: list[str]
-    country_code: str | None
-
-
 class OpenAireGraphEuniceSeedStatusResponse(BaseModel):
     api_base_url: str
-    configured_targets: list[EUNICETargetOrganizationResponse]
+    community_id: str
+    product_type: str
+    default_max_publications: int
     table_counts: dict[str, int]
     latest_ingestion_run_id: str | None
     latest_ingestion_status: str | None
 
 
 class OpenAireGraphEuniceSeedLoadRequest(BaseModel):
-    target_organization_keys: list[str] | None = None
-    max_publications_per_organization: int | None = Field(default=None, ge=1, le=500)
+    max_publications: int | None = Field(default=None, ge=1, le=2000)
     publication_year_from: int | None = Field(default=None, ge=1000, le=3000)
     publication_year_to: int | None = Field(default=None, ge=1000, le=3000)
 
@@ -74,10 +68,9 @@ class OpenAireGraphEuniceSeedLoadRequest(BaseModel):
 
 class OpenAireGraphEuniceSeedLoadResponse(BaseModel):
     api_base_url: str
+    community_id: str
     ingestion_run_id: str | None
-    target_organizations_requested: int
-    resolved_target_organizations: int
-    max_publications_per_organization: int | None
+    max_publications: int | None
     publication_records_processed: int
     new_organizations: int
     new_researchers: int

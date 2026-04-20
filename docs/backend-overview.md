@@ -132,7 +132,7 @@ The backend currently follows these important choices:
 - strong provenance via `source_record`
 - two distinct seed paths for MVP/demo data:
   - local OpenAIRE Beginner's Kit archives
-  - targeted EUNICE seed via the OpenAIRE Graph API
+  - community-scoped EUNICE seed via the OpenAIRE Graph API v2
 - provider-based embeddings abstraction
 - materialized graph pipelines rather than live rebuilds on every request
 - Qdrant used as vector infrastructure, not as the canonical metadata store

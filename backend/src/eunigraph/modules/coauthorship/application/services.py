@@ -408,7 +408,7 @@ class CoauthorshipGraphService:
             researcher = authorship.researcher
             publication = authorship.publication
             researcher_id = str(researcher.id)
-            primary_organization = researcher.primary_organization
+            display_organization = self._resolve_researcher_display_organization(researcher)
             eunice_university = self._resolve_researcher_eunice_university(researcher)
             if include_isolated_nodes or publication is not None:
                 node_map[researcher_id] = {
@@ -417,10 +417,10 @@ class CoauthorshipGraphService:
                     "full_name": researcher.full_name,
                     "normalized_name": researcher.normalized_name,
                     "primary_organization_id": (
-                        str(primary_organization.id) if primary_organization is not None else None
+                        str(display_organization.id) if display_organization is not None else None
                     ),
                     "primary_organization_name": (
-                        primary_organization.name if primary_organization is not None else None
+                        display_organization.name if display_organization is not None else None
                     ),
                     "university_code": eunice_university.code if eunice_university else None,
                     "university_name": eunice_university.name if eunice_university else None,
@@ -798,7 +798,12 @@ class CoauthorshipGraphService:
                     for node in nodes
                     if node["id"] in selected_node_ids
                 ),
-                key=lambda node: (node["strength"], node["degree"], node["label"]),
+                key=lambda node: (
+                    self._node_has_attribution(node),
+                    node["strength"],
+                    node["degree"],
+                    node["label"],
+                ),
                 reverse=True,
             )
             selected_node_ids = {node["id"] for node in ranked_nodes[:max_nodes]}
@@ -872,7 +877,39 @@ class CoauthorshipGraphService:
             for spec in EUNICE_UNIVERSITY_SPECS:
                 if spec.code == university_code:
                     return spec.color
+        organization_id = node.get("primary_organization_id")
+        if isinstance(organization_id, str) and organization_id:
+            return self._organization_color(organization_id)
         return "#a1a1aa"
+
+    def _node_has_attribution(self, node: dict[str, Any]) -> int:
+        return int(
+            bool(node.get("primary_organization_id")) or bool(node.get("university_code")),
+        )
+
+    def _organization_color(self, organization_id: str) -> str:
+        digest = hashlib.sha256(organization_id.encode("utf-8")).digest()
+        hue = int.from_bytes(digest[:2], byteorder="big") % 360
+        saturation = 46 + (digest[2] % 8)
+        lightness = 48 + (digest[3] % 8)
+        return f"hsl({hue}, {saturation}%, {lightness}%)"
+
+    def _resolve_researcher_display_organization(
+        self,
+        researcher: ResearcherModel,
+    ) -> OrganizationModel | None:
+        if researcher.primary_organization is not None:
+            return researcher.primary_organization
+
+        affiliations = self._researcher_affiliations(researcher.id)
+        organizations = {
+            affiliation.organization_id: affiliation.organization
+            for affiliation in affiliations
+            if affiliation.organization is not None
+        }
+        if len(organizations) == 1:
+            return next(iter(organizations.values()))
+        return None
 
     def _resolve_researcher_eunice_university(
         self,

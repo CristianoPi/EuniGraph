@@ -60,33 +60,21 @@ Relevant configuration:
 - `OPENAIRE_GRAPH_API_BASE_URL`
 - `OPENAIRE_GRAPH_API_TIMEOUT_SECONDS`
 - `OPENAIRE_GRAPH_API_PAGE_SIZE`
-- `OPENAIRE_EUNICE_SEED_MAX_PUBLICATIONS_PER_ORGANIZATION`
+- `OPENAIRE_EUNICE_SEED_MAX_PUBLICATIONS`
 
-The workflow resolves a configured list of EUNICE organizations through the OpenAIRE Graph API and then fetches only research products filtered by:
+The workflow uses the OpenAIRE Graph API v2 and fetches only research products filtered by:
 
-- `relOrganizationId=<resolved OpenAIRE organization id>`
+- `relCommunityId=eunice`
 - `type=publication`
 
-Current configured target keys:
-
-- `unict`
-- `btu`
-- `cantabria`
-- `umons`
-- `peloponnese`
-- `poznan-tech`
-- `vaasa`
-- `viseu`
-- `mub`
-
-Alias handling is intentionally local and explicit in the ingestion module so the target list is easy to extend without changing the canonical model.
+The current implementation intentionally stays publication-centered because the canonical model, browsing UI and graph layers are all publication-first.
 
 ## EUNICE Seed Scope
 
-The EUNICE seed imports only data relevant to the configured target organizations:
+The EUNICE seed imports only data relevant to the OpenAIRE community slice for `eunice`:
 
-- target `organization` rows
-- `publication` rows connected to those organizations
+- `publication` rows returned by `GET /graph/v2/researchProducts?relCommunityId=eunice&type=publication`
+- `organization` rows embedded in publication metadata
 - `researcher` rows derived from publication author metadata
 - `publication_author`
 - `publication_organization`
@@ -96,19 +84,32 @@ The EUNICE seed imports only data relevant to the configured target organization
 
 It does not depend on the local Beginner's Kit archives.
 
+## EUNICE Seed API Syntax
+
+Confirmed source-of-truth syntax for the current workflow:
+
+- all research products in the community:
+  - `GET https://api.openaire.eu/graph/v2/researchProducts?relCommunityId=eunice`
+- publications only:
+  - `GET https://api.openaire.eu/graph/v2/researchProducts?relCommunityId=eunice&type=publication`
+
+The implemented seed uses the publication-only variant.
+
+OpenAIRE Graph documentation also states that `v2/researchProducts` responses contain `organizations` and `communities`, which is what the current mapping relies on.
+
 ## EUNICE Affiliation Rule
 
-OpenAIRE Graph publications expose organizations linked to the publication, but the API path used for the MVP does not provide a direct per-author affiliation assignment that is stable enough for the canonical model.
+OpenAIRE Graph v2 publications expose `authors`, `organizations` and `communities`, but they still do not provide a stable per-author affiliation assignment ready to copy directly into the canonical model.
 
 The current EUNICE seed therefore applies a deliberate demo heuristic:
 
-- only configured EUNICE target organizations are materialized from this workflow
-- a publication can accumulate one or more target organizations while the seed iterates through the selected targets
-- if a publication ends up linked to exactly one target organization, all imported authors of that publication receive a `researcher_affiliation` to that organization
-- if a publication is linked to multiple target organizations, the case is treated as ambiguous and no `researcher_affiliation` is derived from that publication
+- all embedded publication organizations are imported into the canonical `organization` table
+- embedded organizations are deduplicated conservatively inside each publication payload, preferring stable `openorgs` records over `pending_org` variants
+- if a publication ends up linked to exactly one canonical organization after that deduplication, all imported authors of that publication receive a `researcher_affiliation` to that organization
+- if a publication still resolves to multiple canonical organizations, the case is treated as ambiguous and no `researcher_affiliation` is derived from that publication
 - when a researcher ends up with exactly one affiliation in the loaded dataset slice, `researcher.primary_organization_id` is also aligned automatically by the existing canonical helper
 
-This keeps the dataset small and useful for demo browsing and coauthorship coloring without pretending to solve full person-level affiliation resolution.
+This keeps the dataset useful for demo browsing and coauthorship coloring without pretending to solve full person-level affiliation resolution.
 
 ## Current Seed Scope
 

@@ -19,9 +19,6 @@ from eunigraph.modules.catalog.infrastructure.models import (
     ResearcherAffiliationModel,
     ResearcherModel,
 )
-from eunigraph.modules.ingestion.application.eunice_seed_targets import (
-    EUNICETargetOrganizationSpec,
-)
 from eunigraph.modules.ingestion.application.openaire_beginners_kit import (
     OpenAireBeginnersKitSeeder,
     SeedLoadError,
@@ -127,7 +124,7 @@ def _settings() -> object:
         openaire_graph_api_base_url="https://api.openaire.eu/graph",
         openaire_graph_api_timeout_seconds=30,
         openaire_graph_api_page_size=25,
-        openaire_eunice_seed_max_publications_per_organization=50,
+        openaire_eunice_seed_max_publications=250,
     )
 
 
@@ -374,68 +371,7 @@ def test_map_researcher_affiliation_relation_skips_ambiguous_multi_author_public
     )
 
 
-def test_resolve_single_target_organization_matches_alias_and_country() -> None:
-    session = FakeSeedSession()
-    seeder = OpenAireGraphEuniceSeeder(cast(Session, session), cast(Any, _settings()))
-    spec = EUNICETargetOrganizationSpec(
-        key="umons",
-        display_name="Universite de Mons",
-        aliases=("Universite de Mons", "University of Mons", "UMONS"),
-        country_code="BE",
-    )
-
-    seeder._api.search_organizations = lambda **_: [  # type: ignore[method-assign]
-        {
-            "id": "openorgs::umons",
-            "legalName": "Universite de Mons",
-            "legalShortName": "UMONS",
-            "alternativeNames": ["University of Mons"],
-            "country": {"code": "BE"},
-        }
-    ]
-
-    resolved = seeder._resolve_single_target_organization(spec)
-
-    assert resolved is not None
-    assert resolved.openaire_id == "openorgs::umons"
-    assert resolved.spec.key == "umons"
-
-
-def test_resolve_single_target_organization_accepts_peloponnese_api_naming() -> None:
-    session = FakeSeedSession()
-    seeder = OpenAireGraphEuniceSeeder(cast(Session, session), cast(Any, _settings()))
-    spec = EUNICETargetOrganizationSpec(
-        key="peloponnese",
-        display_name="University of the Peloponnese",
-        aliases=(
-            "University of the Peloponnese",
-            "University of Peloponnese",
-            "Πανεπιστήμιο Πελοποννήσου",
-        ),
-        country_code="GR",
-    )
-
-    seeder._api.search_organizations = lambda **_: [  # type: ignore[method-assign]
-        {
-            "id": "openorgs::peloponnese",
-            "legalName": "University of Peloponnese",
-            "legalShortName": "University of Peloponnese",
-            "alternativeNames": [
-                "Πανεπιστήμιο Πελοποννήσου",
-                "Université du péloponnèse",
-            ],
-            "country": {"code": "GR"},
-        }
-    ]
-
-    resolved = seeder._resolve_single_target_organization(spec)
-
-    assert resolved is not None
-    assert resolved.openaire_id == "openorgs::peloponnese"
-    assert resolved.spec.key == "peloponnese"
-
-
-def test_eunice_seed_status_exposes_configured_targets() -> None:
+def test_eunice_seed_status_exposes_community_configuration() -> None:
     session = FakeSeedSession()
     seeder = OpenAireGraphEuniceSeeder(cast(Session, session), cast(Any, _settings()))
 
@@ -443,7 +379,9 @@ def test_eunice_seed_status_exposes_configured_targets() -> None:
 
     assert isinstance(status_payload, EUNICESeedStatus)
     assert status_payload.api_base_url == "https://api.openaire.eu/graph"
-    assert any(target["key"] == "unict" for target in status_payload.configured_targets)
+    assert status_payload.community_id == "eunice"
+    assert status_payload.product_type == "publication"
+    assert status_payload.default_max_publications == 250
 
 
 def test_graph_api_client_falls_back_from_beta_to_production_on_405(monkeypatch: Any) -> None:
@@ -484,7 +422,40 @@ def test_graph_api_client_falls_back_from_beta_to_production_on_405(monkeypatch:
     assert client.active_base_url == "https://api.openaire.eu/graph"
 
 
-def test_materialize_target_affiliations_links_all_authors_when_single_target_org() -> None:
+def test_extract_publication_organizations_deduplicates_eunice_variants() -> None:
+    session = FakeSeedSession()
+    seeder = OpenAireGraphEuniceSeeder(cast(Session, session), cast(Any, _settings()))
+
+    organizations = seeder._extract_publication_organization_payloads(
+        {
+            "organizations": [
+                {
+                    "legalName": "Universidad de Cantabria",
+                    "acronym": "Universidad de Cantabria",
+                    "id": "pending_org_::one",
+                    "pids": None,
+                },
+                {
+                    "legalName": "University of Cantabria",
+                    "acronym": "UC",
+                    "id": "openorgs____::cantabria",
+                    "pids": [{"scheme": "ROR", "value": "https://ror.org/046ffzj20"}],
+                },
+                {
+                    "legalName": "University of Cantabria",
+                    "acronym": "University of Cantabria",
+                    "id": "pending_org_::two",
+                    "pids": None,
+                },
+            ]
+        }
+    )
+
+    assert len(organizations) == 1
+    assert organizations[0]["id"] == "openorgs____::cantabria"
+
+
+def test_materialize_candidate_affiliations_links_all_authors_when_single_org() -> None:
     publication = PublicationModel(
         id=uuid4(),
         title="Seeded publication",
@@ -507,9 +478,9 @@ def test_materialize_target_affiliations_links_all_authors_when_single_target_or
     )
     seeder = OpenAireGraphEuniceSeeder(cast(Session, session), cast(Any, _settings()))
     organization_id = uuid4()
-    seeder._target_orgs_by_publication[publication.id] = {organization_id}
+    seeder._affiliation_candidate_orgs_by_publication[publication.id] = {organization_id}
 
-    ambiguous = seeder._materialize_target_affiliations()
+    ambiguous = seeder._materialize_candidate_affiliations()
 
     affiliations = [
         item for item in session.added if isinstance(item, ResearcherAffiliationModel)
@@ -519,7 +490,7 @@ def test_materialize_target_affiliations_links_all_authors_when_single_target_or
     assert {affiliation.organization_id for affiliation in affiliations} == {organization_id}
 
 
-def test_materialize_target_affiliations_skips_multi_target_publications() -> None:
+def test_materialize_candidate_affiliations_skips_multi_org_publications() -> None:
     publication = PublicationModel(
         id=uuid4(),
         title="Collaborative publication",
@@ -528,9 +499,9 @@ def test_materialize_target_affiliations_skips_multi_target_publications() -> No
     )
     session = FakeSeedSession(get_values={publication.id: publication})
     seeder = OpenAireGraphEuniceSeeder(cast(Session, session), cast(Any, _settings()))
-    seeder._target_orgs_by_publication[publication.id] = {uuid4(), uuid4()}
+    seeder._affiliation_candidate_orgs_by_publication[publication.id] = {uuid4(), uuid4()}
 
-    ambiguous = seeder._materialize_target_affiliations()
+    ambiguous = seeder._materialize_candidate_affiliations()
 
     assert ambiguous == 1
     assert not [

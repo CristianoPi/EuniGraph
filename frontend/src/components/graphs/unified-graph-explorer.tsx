@@ -120,8 +120,14 @@ function formatGraphError(error: unknown): string {
   return "The graph explorer could not load the requested graph layer from the backend.";
 }
 
-export function UnifiedGraphExplorer() {
-  const [layer, setLayer] = useState<GraphLayer>("coauthorship");
+type UnifiedGraphExplorerProps = {
+  initialLayer?: GraphLayer;
+};
+
+export function UnifiedGraphExplorer({
+  initialLayer = "coauthorship",
+}: UnifiedGraphExplorerProps) {
+  const [layer, setLayer] = useState<GraphLayer>(initialLayer);
 
   const [coauthorshipDraft, setCoauthorshipDraft] = useState<CoauthorshipControlState>({
     researcherId: "",

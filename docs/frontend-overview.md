@@ -90,7 +90,7 @@ The current implementation uses these hooks to prove:
 ## 7. Route Structure
 
 Current routes:
-- `/`: overview and integration status
+- `/`: product overview, system context and graph-layer introduction
 - `/dashboard`: dashboard overview with workflow status, catalog snapshot and quick search
 - `/entities`: catalog hub
 - `/entities/publications`: publication browsing

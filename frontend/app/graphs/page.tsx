@@ -1,7 +1,19 @@
 import { PageHeader } from "@/components/ui/page-header";
 import { UnifiedGraphExplorer } from "@/components/graphs/unified-graph-explorer";
+import type { GraphLayer } from "@/lib/graphs/types";
 
-export default function GraphsPage() {
+type GraphsPageProps = {
+  searchParams?: Promise<{ layer?: string }>;
+};
+
+function normalizeLayer(value: string | undefined): GraphLayer {
+  return value === "semantic" ? "semantic" : "coauthorship";
+}
+
+export default async function GraphsPage({ searchParams }: GraphsPageProps) {
+  const params = searchParams ? await searchParams : undefined;
+  const initialLayer = normalizeLayer(params?.layer);
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -10,7 +22,7 @@ export default function GraphsPage() {
         description="Switch layer, filter subgraphs and inspect nodes or edges."
       />
 
-      <UnifiedGraphExplorer />
+      <UnifiedGraphExplorer initialLayer={initialLayer} />
     </div>
   );
 }

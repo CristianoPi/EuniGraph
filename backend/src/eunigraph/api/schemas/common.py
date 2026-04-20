@@ -18,3 +18,7 @@ class ValidationErrorItemResponse(BaseModel):
 
 class ValidationErrorResponse(BaseModel):
     detail: list[ValidationErrorItemResponse]
+
+
+class CountResponse(BaseModel):
+    count: int

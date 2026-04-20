@@ -26,7 +26,7 @@ router = APIRouter(
 )
 DB_SESSION = Depends(get_db_session)
 APP_SETTINGS = Depends(get_app_settings)
-MAX_NODES_QUERY = Query(default=None, ge=1, le=1000)
+MAX_NODES_QUERY = Query(default=None, ge=1, le=2500)
 MIN_EDGE_WEIGHT_QUERY = Query(default=None, ge=1, le=1000)
 
 

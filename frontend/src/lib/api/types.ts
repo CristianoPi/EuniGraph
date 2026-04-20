@@ -3,6 +3,10 @@ export type HealthResponse = {
   status: string;
 };
 
+export type CountResponse = {
+  count: number;
+};
+
 export type Publication = {
   id: string;
   title: string;

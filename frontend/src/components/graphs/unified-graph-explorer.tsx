@@ -20,6 +20,7 @@ import {
   useSemanticMetrics,
   useSemanticNodeMetrics,
 } from "@/hooks/use-graphs";
+import { ApiError } from "@/lib/api/client";
 import {
   COAUTHORSHIP_FALLBACK_COLOR,
   getCoauthorshipOrganizationColor,
@@ -97,6 +98,28 @@ type CoauthorshipOrganizationLegendItem = {
   kind: "university" | "organization" | "fallback";
 };
 
+const DEFAULT_GRAPH_NODE_LIMIT = 250;
+
+function defaultNodeLimitValue(): string {
+  return String(DEFAULT_GRAPH_NODE_LIMIT);
+}
+
+function formatGraphError(error: unknown): string {
+  if (error instanceof ApiError) {
+    if (typeof error.detail === "string" && error.detail.trim()) {
+      return error.detail;
+    }
+    if (Array.isArray(error.detail)) {
+      const firstDetail = error.detail[0];
+      if (firstDetail && typeof firstDetail === "object" && "msg" in firstDetail) {
+        return String(firstDetail.msg);
+      }
+    }
+    return `Backend request failed with status ${error.status}.`;
+  }
+  return "The graph explorer could not load the requested graph layer from the backend.";
+}
+
 export function UnifiedGraphExplorer() {
   const [layer, setLayer] = useState<GraphLayer>("coauthorship");
 
@@ -104,7 +127,7 @@ export function UnifiedGraphExplorer() {
     researcherId: "",
     organizationId: "",
     communityId: "",
-    maxNodes: "80",
+    maxNodes: defaultNodeLimitValue(),
     minEdgeWeight: "",
   });
   const [semanticDraft, setSemanticDraft] = useState<SemanticControlState>({
@@ -112,15 +135,15 @@ export function UnifiedGraphExplorer() {
     organizationId: "",
     publicationYear: "",
     communityId: "",
-    maxNodes: "80",
+    maxNodes: defaultNodeLimitValue(),
     minEdgeWeight: "",
   });
 
   const [coauthorshipFilters, setCoauthorshipFilters] = useState<CoauthorshipSubgraphFilters>({
-    max_nodes: 80,
+    max_nodes: DEFAULT_GRAPH_NODE_LIMIT,
   });
   const [semanticFilters, setSemanticFilters] = useState<SemanticSubgraphFilters>({
-    max_nodes: 80,
+    max_nodes: DEFAULT_GRAPH_NODE_LIMIT,
   });
 
   const coauthorshipStatus = useCoauthorshipGraphStatus(layer === "coauthorship");
@@ -356,7 +379,7 @@ export function UnifiedGraphExplorer() {
         researcherId: "",
         organizationId: "",
         communityId: "",
-        maxNodes: "80",
+        maxNodes: defaultNodeLimitValue(),
         minEdgeWeight: "",
       };
       setCoauthorshipDraft(nextDraft);
@@ -367,7 +390,7 @@ export function UnifiedGraphExplorer() {
         organizationId: "",
         publicationYear: "",
         communityId: "",
-        maxNodes: "80",
+        maxNodes: defaultNodeLimitValue(),
         minEdgeWeight: "",
       };
       setSemanticDraft(nextDraft);
@@ -535,7 +558,9 @@ export function UnifiedGraphExplorer() {
       {activeStatus.isLoading || activeGraph.isLoading ? (
         <LoadingState label="Loading the materialized graph and its current build status..." />
       ) : activeStatus.isError || activeGraph.isError ? (
-        <ErrorState message="The graph explorer could not load the requested graph layer from the backend." />
+        <ErrorState
+          message={formatGraphError(activeGraph.error ?? activeStatus.error)}
+        />
       ) : activeStatus.data?.status !== "completed" ? (
         <EmptyState
           title="Graph build not available"

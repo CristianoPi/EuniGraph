@@ -80,8 +80,11 @@ The backend currently exposes these main endpoint families:
 ### Core and Canonical Data
 - `/api/v1/health`
 - `/api/v1/publications`
+- `/api/v1/publications/count`
 - `/api/v1/researchers`
+- `/api/v1/researchers/count`
 - `/api/v1/organizations`
+- `/api/v1/organizations/count`
 - `/api/v1/source-records`
 
 ### Workflow and Admin

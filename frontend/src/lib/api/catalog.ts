@@ -1,5 +1,6 @@
 import { apiRequest, buildApiPath } from "@/lib/api/client";
 import type {
+  CountResponse,
   Organization,
   Publication,
   PublicationAuthor,
@@ -38,6 +39,10 @@ export function listPublications(filters: PublicationFilters = {}) {
   return apiRequest<Publication[]>(buildApiPath("/api/v1/publications", filters));
 }
 
+export function countPublications(filters: Omit<PublicationFilters, "limit" | "offset"> = {}) {
+  return apiRequest<CountResponse>(buildApiPath("/api/v1/publications/count", filters));
+}
+
 export function getPublication(id: string) {
   return apiRequest<Publication>(`/api/v1/publications/${id}`);
 }
@@ -58,6 +63,10 @@ export function listResearchers(filters: ResearcherFilters = {}) {
   return apiRequest<Researcher[]>(buildApiPath("/api/v1/researchers", filters));
 }
 
+export function countResearchers(filters: Omit<ResearcherFilters, "limit" | "offset"> = {}) {
+  return apiRequest<CountResponse>(buildApiPath("/api/v1/researchers/count", filters));
+}
+
 export function getResearcher(id: string) {
   return apiRequest<Researcher>(`/api/v1/researchers/${id}`);
 }
@@ -68,6 +77,12 @@ export function listResearcherAffiliations(id: string) {
 
 export function listOrganizations(filters: OrganizationFilters = {}) {
   return apiRequest<Organization[]>(buildApiPath("/api/v1/organizations", filters));
+}
+
+export function countOrganizations(
+  filters: Omit<OrganizationFilters, "limit" | "offset"> = {},
+) {
+  return apiRequest<CountResponse>(buildApiPath("/api/v1/organizations/count", filters));
 }
 
 export function getOrganization(id: string) {

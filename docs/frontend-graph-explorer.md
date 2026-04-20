@@ -80,9 +80,11 @@ The explorer only exposes filters already supported by the backend.
 - `min_edge_weight`
 - `community_id`
 
-When no filter is active, the explorer loads the full persisted graph payload.
+The explorer initializes with `max_nodes=250`, so the default experience loads a backend subgraph instead of the full persisted graph payload.
 
-When a filter is active, the explorer loads a backend subgraph instead of pruning locally.
+If the operator clears `max_nodes` and other filters, the explorer can still load the full persisted graph payload.
+
+When a filter is active, the explorer always loads a backend subgraph instead of pruning locally.
 
 ## 7. Detail Panels
 
@@ -143,5 +145,7 @@ The UX is shared, but the node and edge semantics differ:
 - no background refresh or realtime synchronization
 - coauthorship coloring is intentionally limited to a governed EUNICE university set
 - ambiguous multi-university cases remain neutral instead of being forced into one institutional color
+- the first-load default uses `max_nodes=250` to avoid throwing the full graph at the browser
+- the coauthorship subgraph API still enforces a bounded `max_nodes` request rather than allowing unbounded oversized payloads
 
 The explorer is intentionally focused on reliable retrieval and readable exploration of the materialized backend graphs.

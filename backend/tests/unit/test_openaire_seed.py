@@ -401,6 +401,40 @@ def test_resolve_single_target_organization_matches_alias_and_country() -> None:
     assert resolved.spec.key == "umons"
 
 
+def test_resolve_single_target_organization_accepts_peloponnese_api_naming() -> None:
+    session = FakeSeedSession()
+    seeder = OpenAireGraphEuniceSeeder(cast(Session, session), cast(Any, _settings()))
+    spec = EUNICETargetOrganizationSpec(
+        key="peloponnese",
+        display_name="University of the Peloponnese",
+        aliases=(
+            "University of the Peloponnese",
+            "University of Peloponnese",
+            "Πανεπιστήμιο Πελοποννήσου",
+        ),
+        country_code="GR",
+    )
+
+    seeder._api.search_organizations = lambda **_: [  # type: ignore[method-assign]
+        {
+            "id": "openorgs::peloponnese",
+            "legalName": "University of Peloponnese",
+            "legalShortName": "University of Peloponnese",
+            "alternativeNames": [
+                "Πανεπιστήμιο Πελοποννήσου",
+                "Université du péloponnèse",
+            ],
+            "country": {"code": "GR"},
+        }
+    ]
+
+    resolved = seeder._resolve_single_target_organization(spec)
+
+    assert resolved is not None
+    assert resolved.openaire_id == "openorgs::peloponnese"
+    assert resolved.spec.key == "peloponnese"
+
+
 def test_eunice_seed_status_exposes_configured_targets() -> None:
     session = FakeSeedSession()
     seeder = OpenAireGraphEuniceSeeder(cast(Session, session), cast(Any, _settings()))

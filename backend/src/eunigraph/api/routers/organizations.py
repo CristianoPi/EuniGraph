@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from eunigraph.api.deps import get_db_session
 from eunigraph.api.openapi import COMMON_ERROR_RESPONSES
+from eunigraph.api.schemas.common import CountResponse
 from eunigraph.api.schemas.organizations import (
     OrganizationCreate,
     OrganizationResponse,
@@ -14,6 +15,7 @@ from eunigraph.api.schemas.organizations import (
 )
 from eunigraph.modules.catalog.application.services import (
     OrganizationFilters,
+    count_organizations,
     create_organization,
     get_organization_or_404,
     list_organizations,
@@ -62,6 +64,30 @@ def get_organizations(
         offset=offset,
     )
     return [_organization_response(organization) for organization in organizations]
+
+
+@router.get(
+    "/count",
+    response_model=CountResponse,
+    summary="Count organizations",
+    description="Return the total number of canonical organizations matching the optional filters.",
+)
+def get_organizations_count(
+    name: str | None = None,
+    organization_type: str | None = None,
+    parent_organization_id: UUID | None = None,
+    session: Session = DB_SESSION,
+) -> CountResponse:
+    return CountResponse(
+        count=count_organizations(
+            session,
+            OrganizationFilters(
+                name=name,
+                organization_type=organization_type,
+                parent_organization_id=parent_organization_id,
+            ),
+        ),
+    )
 
 
 @router.get(

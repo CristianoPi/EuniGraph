@@ -63,9 +63,11 @@ DEFAULT_EUNICE_TARGET_ORGANIZATIONS: tuple[EUNICETargetOrganizationSpec, ...] = 
         display_name="University of the Peloponnese",
         aliases=(
             "University of the Peloponnese",
+            "University of Peloponnese",
             "Universita del Peloponneso",
             "Università del Peloponneso",
             "Panepistimio Peloponnisou",
+            "Πανεπιστήμιο Πελοποννήσου",
         ),
         country_code="GR",
     ),

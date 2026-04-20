@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from eunigraph.api.deps import get_db_session
 from eunigraph.api.openapi import COMMON_ERROR_RESPONSES
+from eunigraph.api.schemas.common import CountResponse
 from eunigraph.api.schemas.researchers import (
     ResearcherAffiliationCreate,
     ResearcherAffiliationResponse,
@@ -17,6 +18,7 @@ from eunigraph.api.schemas.researchers import (
 from eunigraph.modules.catalog.application.services import (
     ResearcherFilters,
     add_researcher_affiliation,
+    count_researchers,
     create_researcher,
     get_researcher_or_404,
     list_researcher_affiliations,
@@ -70,6 +72,30 @@ def get_researchers(
         offset=offset,
     )
     return [_researcher_response(researcher) for researcher in researchers]
+
+
+@router.get(
+    "/count",
+    response_model=CountResponse,
+    summary="Count researchers",
+    description="Return the total number of canonical researchers matching the optional filters.",
+)
+def get_researchers_count(
+    name: str | None = None,
+    orcid: str | None = None,
+    primary_organization_id: UUID | None = None,
+    session: Session = DB_SESSION,
+) -> CountResponse:
+    return CountResponse(
+        count=count_researchers(
+            session,
+            ResearcherFilters(
+                name=name,
+                orcid=orcid,
+                primary_organization_id=primary_organization_id,
+            ),
+        ),
+    )
 
 
 @router.get(

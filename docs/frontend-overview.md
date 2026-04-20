@@ -115,7 +115,7 @@ The current frontend goes beyond the initial shell foundation.
 
 Dashboard:
 - combines backend health, embeddings status and graph build status
-- composes pragmatic catalog counts from existing list endpoints
+- uses dedicated backend count endpoints for publications, researchers and organizations
 - exposes a quick cross-entity search that reuses backend filters rather than inventing a new client-only search model
 
 Entity browsing:
@@ -158,7 +158,6 @@ The frontend foundation deliberately stops short of:
 - editing workflows for existing canonical records and relation management
 - authentication
 - cross-entity aggregated search endpoint support
-- backend-driven total counts for catalog metrics
 
 These are deferred to later issues now that the structural groundwork and first browsing experience are in place.
 
@@ -169,6 +168,7 @@ The graph explorer is now a real frontend surface rather than a placeholder.
 The current design principle is:
 - same UI pattern for both coauthorship and semantic graph layers
 - different node and edge meaning depending on the selected layer
+- a default backend subgraph size of 250 nodes for first-load readability
 
 Dedicated documentation:
 - [frontend-graph-explorer.md](frontend-graph-explorer.md)

@@ -5,7 +5,7 @@ from datetime import date
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from sqlalchemy import Select, select
+from sqlalchemy import Select, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
@@ -99,6 +99,26 @@ def list_publications(
     return list(session.scalars(query.limit(limit).offset(offset)))
 
 
+def count_publications(
+    session: Session,
+    filters: PublicationFilters,
+) -> int:
+    query = select(func.count(PublicationModel.id))
+
+    if filters.doi:
+        query = query.where(PublicationModel.doi == filters.doi)
+    if filters.publication_year is not None:
+        query = query.where(PublicationModel.publication_year == filters.publication_year)
+    if filters.openaire_id:
+        query = query.where(PublicationModel.openaire_id == filters.openaire_id)
+    if filters.title:
+        query = query.where(
+            PublicationModel.normalized_title.contains(normalize_text(filters.title)),
+        )
+
+    return int(session.scalar(query) or 0)
+
+
 def list_researchers(
     session: Session,
     filters: ResearcherFilters,
@@ -123,6 +143,26 @@ def list_researchers(
     return list(session.scalars(query.limit(limit).offset(offset)))
 
 
+def count_researchers(
+    session: Session,
+    filters: ResearcherFilters,
+) -> int:
+    query = select(func.count(ResearcherModel.id))
+
+    if filters.orcid:
+        query = query.where(ResearcherModel.orcid == filters.orcid)
+    if filters.primary_organization_id:
+        query = query.where(
+            ResearcherModel.primary_organization_id == filters.primary_organization_id,
+        )
+    if filters.name:
+        query = query.where(
+            ResearcherModel.normalized_name.contains(normalize_text(filters.name)),
+        )
+
+    return int(session.scalar(query) or 0)
+
+
 def list_organizations(
     session: Session,
     filters: OrganizationFilters,
@@ -145,6 +185,26 @@ def list_organizations(
         )
 
     return list(session.scalars(query.limit(limit).offset(offset)))
+
+
+def count_organizations(
+    session: Session,
+    filters: OrganizationFilters,
+) -> int:
+    query = select(func.count(OrganizationModel.id))
+
+    if filters.organization_type:
+        query = query.where(OrganizationModel.organization_type == filters.organization_type)
+    if filters.parent_organization_id:
+        query = query.where(
+            OrganizationModel.parent_organization_id == filters.parent_organization_id,
+        )
+    if filters.name:
+        query = query.where(
+            OrganizationModel.normalized_name.contains(normalize_text(filters.name)),
+        )
+
+    return int(session.scalar(query) or 0)
 
 
 def create_publication(

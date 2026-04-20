@@ -33,8 +33,10 @@ const quickLinks: Array<{
   },
 ];
 
-function formatCappedCount(value: number, limit: number): string {
-  return value >= limit ? `${limit}+` : String(value);
+const integerFormatter = new Intl.NumberFormat("en-US");
+
+function formatCount(value: number): string {
+  return integerFormatter.format(value);
 }
 
 export function DashboardOverview() {
@@ -52,18 +54,18 @@ export function DashboardOverview() {
         <div className="grid gap-4 xl:grid-cols-3">
           <StatCard
             label="Publications"
-            value={formatCappedCount(counts.data.publications, counts.data.limit)}
-            hint={`Capped at ${counts.data.limit}.`}
+            value={formatCount(counts.data.publications)}
+            hint="Canonical publications."
           />
           <StatCard
             label="Researchers"
-            value={formatCappedCount(counts.data.researchers, counts.data.limit)}
-            hint={`Capped at ${counts.data.limit}.`}
+            value={formatCount(counts.data.researchers)}
+            hint="Canonical researcher profiles."
           />
           <StatCard
             label="Organizations"
-            value={formatCappedCount(counts.data.organizations, counts.data.limit)}
-            hint={`Capped at ${counts.data.limit}.`}
+            value={formatCount(counts.data.organizations)}
+            hint="Canonical organizations."
           />
         </div>
       ) : (

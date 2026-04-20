@@ -7,8 +7,12 @@ from types import SimpleNamespace
 from typing import Any, cast
 from uuid import UUID, uuid4
 
+from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from eunigraph.api.deps import get_db_session
+from eunigraph.api.routers import coauthorship as coauthorship_router
+from eunigraph.main import app
 from eunigraph.modules.catalog.infrastructure.models import (
     OrganizationModel,
     PublicationAuthorModel,
@@ -413,3 +417,38 @@ def test_render_svg_for_graph_uses_scatter_layout_without_labels() -> None:
     assert "<text" not in svg
     assert 'r="2.70"' in svg
     assert 'r="2.10"' in svg
+
+
+def test_coauthorship_subgraph_accepts_more_than_1000_nodes(monkeypatch: Any) -> None:
+    class StubService:
+        def get_subgraph(self, **_: object) -> dict[str, object]:
+            return {
+                "build_id": str(uuid4()),
+                "graph_type": "coauthorship",
+                "generated_at": "2026-04-20T10:00:00Z",
+                "summary": {
+                    "node_count": 0,
+                    "edge_count": 0,
+                    "component_count": 0,
+                    "community_count": None,
+                    "graph_version": "test-version",
+                },
+                "nodes": [],
+                "edges": [],
+                "data_snapshot": {},
+            }
+
+    def override_db_session() -> object:
+        return object()
+
+    app.dependency_overrides[get_db_session] = override_db_session
+    monkeypatch.setattr(coauthorship_router, "_service", lambda *_: StubService())
+
+    try:
+        client = TestClient(app)
+        response = client.get("/api/v1/coauthorship-graph/subgraph?max_nodes=1200")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert response.json()["summary"]["node_count"] == 0

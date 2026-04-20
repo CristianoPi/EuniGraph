@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from eunigraph.api.deps import get_db_session
 from eunigraph.api.openapi import COMMON_ERROR_RESPONSES
+from eunigraph.api.schemas.common import CountResponse
 from eunigraph.api.schemas.publications import (
     PublicationAuthorCreate,
     PublicationAuthorResponse,
@@ -20,6 +21,7 @@ from eunigraph.modules.catalog.application.services import (
     PublicationFilters,
     add_publication_author,
     add_publication_organization,
+    count_publications,
     create_publication,
     get_publication_or_404,
     list_publication_authors,
@@ -82,6 +84,32 @@ def get_publications(
         offset=offset,
     )
     return [_publication_response(publication) for publication in publications]
+
+
+@router.get(
+    "/count",
+    response_model=CountResponse,
+    summary="Count publications",
+    description="Return the total number of canonical publications matching the optional filters.",
+)
+def get_publications_count(
+    doi: str | None = None,
+    publication_year: int | None = None,
+    title: str | None = None,
+    openaire_id: str | None = None,
+    session: Session = DB_SESSION,
+) -> CountResponse:
+    return CountResponse(
+        count=count_publications(
+            session,
+            PublicationFilters(
+                doi=doi,
+                publication_year=publication_year,
+                title=title,
+                openaire_id=openaire_id,
+            ),
+        ),
+    )
 
 
 @router.get(

@@ -31,8 +31,8 @@ APP_SETTINGS = Depends(get_app_settings)
     response_model=OpenAireGraphEuniceSeedStatusResponse,
     summary="Get OpenAIRE Graph EUNICE seed status",
     description=(
-        "Return configured target organizations, backend counts and the latest "
-        "ingestion status for the targeted EUNICE seed workflow."
+        "Return the Graph API v2 community seed configuration, backend counts and "
+        "the latest ingestion status for the EUNICE seed workflow."
     ),
 )
 def get_eunice_seed_status(
@@ -48,8 +48,8 @@ def get_eunice_seed_status(
     response_model=OpenAireGraphEuniceSeedLoadResponse,
     summary="Load EUNICE seed from the OpenAIRE Graph API",
     description=(
-        "Resolve configured EUNICE target organizations through the OpenAIRE Graph API "
-        "and ingest a compact publication-centered demo dataset."
+        "Ingest a compact publication-centered EUNICE dataset using "
+        "`/graph/v2/researchProducts?relCommunityId=eunice&type=publication`."
     ),
     responses={
         400: COMMON_ERROR_RESPONSES[400],
@@ -64,8 +64,7 @@ def load_eunice_seed(
 ) -> OpenAireGraphEuniceSeedLoadResponse:
     return OpenAireGraphEuniceSeedLoadResponse.model_validate(
         OpenAireGraphEuniceSeeder(session, settings).load(
-            target_organization_keys=payload.target_organization_keys,
-            max_publications_per_organization=payload.max_publications_per_organization,
+            max_publications=payload.max_publications,
             publication_year_from=payload.publication_year_from,
             publication_year_to=payload.publication_year_to,
         ),

@@ -49,7 +49,7 @@ Supported operations:
 - load OpenAIRE seed data, optionally with `limit_per_file`
 - reset OpenAIRE seed data with explicit destructive-action confirmation
 - inspect EUNICE Graph seed status
-- load a targeted EUNICE demo dataset from the OpenAIRE Graph API
+- load a community-scoped EUNICE demo dataset from the OpenAIRE Graph API v2
 - inspect normalization status
 - run normalization with optional notes
 - inspect latest normalization findings
@@ -124,10 +124,11 @@ The current backend executes these workflows synchronously. The frontend therefo
 
 For the EUNICE seed, the operations view exposes:
 
-- the configured EUNICE target organizations
-- optional target subset selection
-- optional publication cap per target organization
-- optional publication year range
+- the Graph API base URL
+- the fixed OpenAIRE community scope `eunice`
+- the fixed product type `publication`
+- an optional overall publication cap
+- an optional publication year range
 
 The response preview intentionally exposes processed publication counts, new canonical rows and ambiguous-publication counts so the operator can understand how much of the demo dataset was actually materialized.
 

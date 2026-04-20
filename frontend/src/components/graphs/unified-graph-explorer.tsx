@@ -215,10 +215,10 @@ export function UnifiedGraphExplorer({
     for (const node of coauthorshipGraph.data.nodes) {
       const universityCode = node.university_code ?? null;
       const organizationKey = node.primary_organization_id ?? null;
-      const mapKey = universityCode
-        ? `university:${universityCode}`
-        : organizationKey
-          ? `organization:${organizationKey}`
+      const mapKey = organizationKey
+        ? `organization:${organizationKey}`
+        : universityCode
+          ? `university:${universityCode}`
           : "__unassigned__";
       const current = counts.get(mapKey);
       if (current) {
@@ -227,26 +227,28 @@ export function UnifiedGraphExplorer({
       }
 
       counts.set(mapKey, {
-        key: universityCode ?? organizationKey,
+        key: organizationKey ?? universityCode,
         label:
-          node.university_name ?? node.primary_organization_name ?? "Not attributed",
-        color: universityCode
-          ? getCoauthorshipUniversityColor(universityCode)
-          : organizationKey
-            ? getCoauthorshipOrganizationColor(organizationKey)
+          node.primary_organization_name ?? node.university_name ?? "Not attributed",
+        color: organizationKey
+          ? universityCode
+            ? getCoauthorshipUniversityColor(universityCode)
+            : getCoauthorshipOrganizationColor(organizationKey)
+          : universityCode
+            ? getCoauthorshipUniversityColor(universityCode)
             : COAUTHORSHIP_FALLBACK_COLOR,
         count: 1,
-        kind: universityCode
-          ? "university"
-          : organizationKey
-            ? "organization"
+        kind: organizationKey
+          ? "organization"
+          : universityCode
+            ? "university"
             : "fallback",
       });
     }
 
-    return [...counts.values()]
-      .sort((left, right) => right.count - left.count || left.label.localeCompare(right.label))
-      .slice(0, 8);
+    return [...counts.values()].sort(
+      (left, right) => right.count - left.count || left.label.localeCompare(right.label),
+    );
   }, [coauthorshipGraph.data, layer]);
   const hasUnassignedCoauthorshipNodes = useMemo(() => {
     if (layer !== "coauthorship" || !coauthorshipGraph.data) {
@@ -527,9 +529,9 @@ export function UnifiedGraphExplorer({
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
                 Node colors
               </p>
-              <p className="text-xs text-zinc-400">EUNICE first, organization fallback</p>
+              <p className="text-xs text-zinc-400">Institutional when mapped, organization otherwise</p>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="grid max-h-56 gap-2 overflow-y-auto pr-1 sm:grid-cols-2 xl:grid-cols-3">
               {coauthorshipOrganizationLegend.map((item) => (
                 <div
                   key={item.key ?? "__unassigned__"}
@@ -541,7 +543,11 @@ export function UnifiedGraphExplorer({
                   />
                   <span className="max-w-[220px] truncate">{item.label}</span>
                   <span className="text-zinc-400">
-                    {item.kind === "university" ? "EUNICE" : item.kind === "organization" ? "Org" : "n/a"}
+                    {item.kind === "university"
+                      ? "EUNICE"
+                      : item.kind === "organization"
+                        ? "Org"
+                        : "n/a"}
                   </span>
                   <span className="text-zinc-400">{item.count}</span>
                 </div>

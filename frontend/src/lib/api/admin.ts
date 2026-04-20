@@ -38,34 +38,27 @@ export type SeedResetResponse = {
   data_source: number;
 };
 
-export type EUNICETargetOrganization = {
-  key: string;
-  display_name: string;
-  aliases: string[];
-  country_code: string | null;
-};
-
 export type EUNICESeedStatus = {
   api_base_url: string;
-  configured_targets: EUNICETargetOrganization[];
+  community_id: string;
+  product_type: string;
+  default_max_publications: number;
   table_counts: Record<string, number>;
   latest_ingestion_run_id: string | null;
   latest_ingestion_status: string | null;
 };
 
 export type EUNICESeedLoadRequest = {
-  target_organization_keys?: string[] | null;
-  max_publications_per_organization?: number | null;
+  max_publications?: number | null;
   publication_year_from?: number | null;
   publication_year_to?: number | null;
 };
 
 export type EUNICESeedLoadResponse = {
   api_base_url: string;
+  community_id: string;
   ingestion_run_id: string | null;
-  target_organizations_requested: number;
-  resolved_target_organizations: number;
-  max_publications_per_organization: number | null;
+  max_publications: number | null;
   publication_records_processed: number;
   new_organizations: number;
   new_researchers: number;

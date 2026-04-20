@@ -7,11 +7,7 @@ import { ErrorState } from "@/components/states/error-state";
 import { LoadingState } from "@/components/states/loading-state";
 import { Panel } from "@/components/ui/panel";
 import { ApiError } from "@/lib/api/client";
-import type {
-  EUNICETargetOrganization,
-  GraphBuildStatus,
-  NormalizationFinding,
-} from "@/lib/api/admin";
+import type { GraphBuildStatus, NormalizationFinding } from "@/lib/api/admin";
 import {
   useAdminCoauthorshipStatus,
   useAdminEuniceSeedStatus,
@@ -46,8 +42,7 @@ type SeedLoadForm = {
 };
 
 type EUNICESeedForm = {
-  target_organization_keys: string[];
-  max_publications_per_organization: string;
+  max_publications: string;
   publication_year_from: string;
   publication_year_to: string;
 };
@@ -319,15 +314,14 @@ function EUNICESeedOperations() {
   const mutation = useLoadEuniceSeedMutation();
   const { handleSubmit, register } = useForm<EUNICESeedForm>({
     defaultValues: {
-      target_organization_keys: [],
-      max_publications_per_organization: "50",
+      max_publications: "250",
       publication_year_from: "",
       publication_year_to: "",
     },
   });
 
   return (
-    <Panel title="EUNICE seed" description="Targeted OpenAIRE Graph import.">
+    <Panel title="EUNICE seed" description="Community-scoped OpenAIRE Graph v2 import.">
       <div className="space-y-5">
         {status.isLoading ? (
           <LoadingState label="Loading EUNICE seed status..." />
@@ -338,7 +332,8 @@ function EUNICESeedOperations() {
             <StatusGrid
               items={[
                 { label: "Graph API", value: status.data.api_base_url },
-                { label: "Targets", value: status.data.configured_targets.length },
+                { label: "Community", value: status.data.community_id },
+                { label: "Product", value: status.data.product_type },
                 {
                   label: "Latest run",
                   value: status.data.latest_ingestion_status ?? "Not available",
@@ -347,32 +342,14 @@ function EUNICESeedOperations() {
             />
             <div className="rounded-[1rem] border border-[color:var(--border)] bg-white p-4">
               <p className="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">
-                Configured targets
+                Seed scope
               </p>
-              <div className="mt-3 grid gap-3 md:grid-cols-2">
-                {status.data.configured_targets.map((target: EUNICETargetOrganization) => (
-                  <label
-                    key={target.key}
-                    className="flex items-start gap-3 rounded-[1rem] border border-[color:var(--border)] px-4 py-3 text-sm text-zinc-700"
-                  >
-                    <input
-                      type="checkbox"
-                      value={target.key}
-                      {...register("target_organization_keys")}
-                      className="mt-1"
-                    />
-                    <span className="space-y-1">
-                      <span className="block font-semibold text-ink">{target.display_name}</span>
-                      <span className="block text-xs uppercase tracking-[0.18em] text-zinc-500">
-                        {target.key}
-                        {target.country_code ? ` · ${target.country_code}` : ""}
-                      </span>
-                    </span>
-                  </label>
-                ))}
-              </div>
-              <p className="mt-3 text-xs text-zinc-500">
-                Leave every target unchecked to load the full configured EUNICE set.
+              <p className="mt-3 text-sm leading-6 text-zinc-600">
+                The loader queries OpenAIRE Graph API v2 with
+                <code className="mx-1 rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-700">
+                  relCommunityId=eunice
+                </code>
+                and imports only publications plus embedded authors and organizations.
               </p>
             </div>
           </div>
@@ -381,13 +358,7 @@ function EUNICESeedOperations() {
         <form
           onSubmit={handleSubmit((values) =>
             mutation.mutate({
-              target_organization_keys:
-                values.target_organization_keys.length > 0
-                  ? values.target_organization_keys
-                  : null,
-              max_publications_per_organization: optionalNumber(
-                values.max_publications_per_organization,
-              ),
+              max_publications: optionalNumber(values.max_publications),
               publication_year_from: optionalNumber(values.publication_year_from),
               publication_year_to: optionalNumber(values.publication_year_to),
             }),
@@ -396,10 +367,10 @@ function EUNICESeedOperations() {
         >
           <div className="grid gap-3 md:grid-cols-3">
             <input
-              {...register("max_publications_per_organization")}
+              {...register("max_publications")}
               className={inputClass}
               inputMode="numeric"
-              placeholder="Max publications per target"
+              placeholder="Max publications"
             />
             <input
               {...register("publication_year_from")}

@@ -61,9 +61,12 @@ class Settings(BaseSettings):
         default=25,
         alias="OPENAIRE_GRAPH_API_PAGE_SIZE",
     )
-    openaire_eunice_seed_max_publications_per_organization: int = Field(
-        default=50,
-        alias="OPENAIRE_EUNICE_SEED_MAX_PUBLICATIONS_PER_ORGANIZATION",
+    openaire_eunice_seed_max_publications: int = Field(
+        default=250,
+        validation_alias=AliasChoices(
+            "OPENAIRE_EUNICE_SEED_MAX_PUBLICATIONS",
+            "OPENAIRE_EUNICE_SEED_MAX_PUBLICATIONS_PER_ORGANIZATION",
+        ),
     )
     coauthorship_graph_storage_path: Path = Field(
         default=Path("./data/graphs/coauthorship"),

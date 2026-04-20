@@ -1,55 +1,8 @@
 # Seed And API Notes
 
-## OpenAIRE Beginner's Kit Path
-
-The local dataset path is configured through:
-
-- `OPENAIRE_BEGINNERS_KIT_PATH`
-
-Default development value:
-
-- `data/openaire/beginners_kit/`
-
-Required archive files for the MVP seed:
-- `publication.tar`
-- `organization.tar`
-- `datasource.tar`
-- `project.tar`
-- `relation.tar`
-
-If the path or any required archive is missing, the seed loader returns a clear validation error before ingesting data.
-
-## Seed Execution
-
-CLI commands:
-- `make backend-seed-openaire`
-- `make backend-reset-openaire-seed`
-- `make backend-seed-status`
-
-Direct module invocation:
-
-```bash
-cd backend
-uv run python -m eunigraph.modules.ingestion.application.seed_cli load
-uv run python -m eunigraph.modules.ingestion.application.seed_cli load --limit-per-file 100
-uv run python -m eunigraph.modules.ingestion.application.seed_cli status
-uv run python -m eunigraph.modules.ingestion.application.seed_cli reset
-```
-
-Current verified behavior:
-- `limit_per_file=200` completes successfully
-- `limit_per_file=500` completes successfully in the current development dataset
-- the CLI `status` command returns the dataclass payload correctly
-
-Seed runtime logging now emits:
-- seed start with dataset path and `limit_per_file`
-- archive phase start, progress and completion
-- processed record counters
-- readable failure context including phase, archive and processed record count
-
 ## OpenAIRE Graph EUNICE Seed Path
 
-The backend now also exposes a community-scoped seed workflow for demo-oriented datasets:
+The main ingestion workflow for the prototype is the community-scoped **EUNICE seed**:
 
 - source type: `openaire_graph_eunice`
 - logical source name: `OpenAIRE Graph EUNICE Seed`
@@ -111,9 +64,63 @@ The current EUNICE seed therefore applies a deliberate demo heuristic:
 
 This keeps the dataset useful for demo browsing and coauthorship coloring without pretending to solve full person-level affiliation resolution.
 
+## Secondary Path: OpenAIRE Beginner's Kit
+
+The local Beginner's Kit loader remains available as a secondary ingestion path.
+
+Use it mainly for:
+- local ingestion debugging
+- provenance and archive parsing checks
+- compatibility testing against the original OpenAIRE archive-based dataset
+
+The local dataset path is configured through:
+
+- `OPENAIRE_BEGINNERS_KIT_PATH`
+
+Default development value:
+
+- `data/openaire/beginners_kit/`
+
+Required archive files for the archive-based loader:
+- `publication.tar`
+- `organization.tar`
+- `datasource.tar`
+- `project.tar`
+- `relation.tar`
+
+If the path or any required archive is missing, the loader returns a clear validation error before ingesting data.
+
+## Beginner's Kit Execution
+
+CLI commands:
+- `make backend-seed-openaire`
+- `make backend-reset-openaire-seed`
+- `make backend-seed-status`
+
+Direct module invocation:
+
+```bash
+cd backend
+uv run python -m eunigraph.modules.ingestion.application.seed_cli load
+uv run python -m eunigraph.modules.ingestion.application.seed_cli load --limit-per-file 100
+uv run python -m eunigraph.modules.ingestion.application.seed_cli status
+uv run python -m eunigraph.modules.ingestion.application.seed_cli reset
+```
+
+Current verified behavior:
+- `limit_per_file=200` completes successfully
+- `limit_per_file=500` completes successfully in the current development dataset
+- the CLI `status` command returns the dataclass payload correctly
+
+Seed runtime logging now emits:
+- seed start with dataset path and `limit_per_file`
+- archive phase start, progress and completion
+- processed record counters
+- readable failure context including phase, archive and processed record count
+
 ## Current Seed Scope
 
-The seed currently reads and persists raw provenance from:
+The archive-based Beginner's Kit seed currently reads and persists raw provenance from:
 - publications
 - organizations
 - datasources

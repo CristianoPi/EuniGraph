@@ -60,9 +60,36 @@ Current frontend routes include:
 
 The browser calls the backend through the frontend proxy route `/api/backend/*`. In Docker Compose the frontend container forwards those requests to `http://backend:8000`, so the backend does not need to be exposed separately for a frontend-only public tunnel.
 
-## OpenAIRE Beginner's Kit Seed
+## Main Demo Data Path: EUNICE Seed
 
-The MVP seed expects the official OpenAIRE Beginner's Kit to be downloaded manually outside the application flow.
+The core ingestion workflow of the prototype is the **EUNICE seed**.
+
+This is the path the project is now optimized around for:
+- dashboard and catalog browsing
+- coauthorship graph exploration
+- organization-aware graph color mapping
+- end-to-end demo preparation from the admin console
+
+The workflow uses the OpenAIRE Graph API v2 with:
+- `GET /graph/v2/researchProducts?relCommunityId=eunice&type=publication`
+
+It imports:
+- publications
+- authors/researchers
+- organizations embedded in publication metadata
+- canonical relations such as `publication_author`, `publication_organization` and derived `researcher_affiliation`
+
+Main entry points:
+- frontend admin console: `/admin/operations`
+- backend endpoint: `POST /api/v1/admin/seeds/openaire-graph-eunice/load`
+
+See [docs/seed-and-api.md](docs/seed-and-api.md) for the exact API syntax, scope and affiliation derivation rule.
+
+## Secondary Seed Path: OpenAIRE Beginner's Kit
+
+The OpenAIRE Beginner's Kit loader remains available, but it should be considered a secondary path for local experimentation, ingestion debugging and compatibility checks.
+
+It is not the main dataset path for the product demo.
 
 Configure the local dataset path with `OPENAIRE_BEGINNERS_KIT_PATH`. The default value in [`.env.example`](.env.example) points to:
 

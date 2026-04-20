@@ -7,7 +7,7 @@ This document defines the initial PostgreSQL schema for EuniGraph.
 The schema is designed to:
 - represent canonical research entities for the MVP
 - preserve strong provenance of imported source records
-- support OpenAIRE Beginner's Kit ingestion without mirroring the raw payload 1:1
+- support both the EUNICE Graph API seed and the secondary OpenAIRE Beginner's Kit path without mirroring raw payloads 1:1
 - power authorship, affiliation, organization and co-authorship queries
 - keep PostgreSQL as the structured system of record while Qdrant handles vectors
 
@@ -225,9 +225,9 @@ Main fields:
 - `source_record 1:N` toward affiliation, authorship, publication-organization and identifiers
 - `source_record 1:0..1 publication` through `canonical_source_record_id`
 
-## OpenAIRE Beginner's Kit Mapping
+## OpenAIRE Mapping
 
-Primary mapping used by the MVP:
+Canonical mapping currently exercised by the project:
 
 - OpenAIRE `publication` or `result`
   maps to `publication`, `publication_author`, `external_identifier`, `source_record`

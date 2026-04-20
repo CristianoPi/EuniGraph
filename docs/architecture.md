@@ -209,7 +209,7 @@ Ingestion, embedding generation, and graph rebuilding may become slower than syn
 - SQLAlchemy 2 plus Alembic as the relational persistence baseline
 - lightweight but complete quality baseline: pytest, Ruff, mypy, pre-commit
 - canonical PostgreSQL schema for publications, researchers, organizations, provenance, embeddings and graph build tracking
-- OpenAIRE Beginner's Kit seed workflow as the initial ingestion path
+- OpenAIRE Graph API v2 EUNICE seed as the main demo ingestion path, with the Beginner's Kit retained as a secondary archive-based path
 - manual entity management APIs with provenance tracking
 - deterministic normalization and deduplication workflow
 - provider-based publication embeddings with Gemini as the first implementation

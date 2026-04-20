@@ -33,7 +33,7 @@ The API router registry is:
 
 The main backend modules are:
 - `catalog`: canonical entities such as publications, researchers, organizations, authorship and affiliations
-- `ingestion`: OpenAIRE Beginner's Kit seed workflow and provenance handling
+- `ingestion`: EUNICE Graph API seed workflow, Beginner's Kit compatibility path and provenance handling
 - `normalization`: deterministic normalization, deduplication and anomaly tracking
 - `embeddings`: provider-based embedding generation and Qdrant integration
 - `coauthorship`: materialized coauthorship graph build, persistence and retrieval
@@ -131,8 +131,8 @@ The backend currently follows these important choices:
 - canonical relational model in PostgreSQL, not direct exposure of raw OpenAIRE payloads
 - strong provenance via `source_record`
 - two distinct seed paths for MVP/demo data:
-  - local OpenAIRE Beginner's Kit archives
-  - community-scoped EUNICE seed via the OpenAIRE Graph API v2
+  - community-scoped EUNICE seed via the OpenAIRE Graph API v2 as the main demo workflow
+  - local OpenAIRE Beginner's Kit archives as a secondary archive-based path
 - provider-based embeddings abstraction
 - materialized graph pipelines rather than live rebuilds on every request
 - Qdrant used as vector infrastructure, not as the canonical metadata store

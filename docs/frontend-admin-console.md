@@ -44,12 +44,14 @@ The implementation follows the existing frontend conventions:
 
 The operations view groups backend-triggered workflows that change system state or materialized artifacts.
 
+The primary seed workflow exposed here is the EUNICE seed. The Beginner's Kit loader remains available, but as a secondary archive-based path.
+
 Supported operations:
+- inspect EUNICE Graph seed status
+- load a community-scoped EUNICE demo dataset from the OpenAIRE Graph API v2
 - inspect OpenAIRE Beginner's Kit seed status
 - load OpenAIRE seed data, optionally with `limit_per_file`
 - reset OpenAIRE seed data with explicit destructive-action confirmation
-- inspect EUNICE Graph seed status
-- load a community-scoped EUNICE demo dataset from the OpenAIRE Graph API v2
 - inspect normalization status
 - run normalization with optional notes
 - inspect latest normalization findings

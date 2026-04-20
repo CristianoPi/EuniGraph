@@ -41,6 +41,9 @@ class CoauthorshipNodeResponse(BaseModel):
     normalized_name: str
     primary_organization_id: str | None
     primary_organization_name: str | None
+    university_code: str | None
+    university_name: str | None
+    is_eunice_university: bool
     degree: int
     strength: int
     betweenness: float

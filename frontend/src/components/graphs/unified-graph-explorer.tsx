@@ -23,6 +23,7 @@ import {
 import {
   COAUTHORSHIP_FALLBACK_COLOR,
   getCoauthorshipOrganizationColor,
+  getCoauthorshipUniversityColor,
   mapCoauthorshipElements,
   mapSemanticElements,
 } from "@/lib/graphs/mappers";
@@ -93,6 +94,7 @@ type CoauthorshipOrganizationLegendItem = {
   label: string;
   color: string;
   count: number;
+  kind: "university" | "organization" | "fallback";
 };
 
 export function UnifiedGraphExplorer() {
@@ -182,8 +184,13 @@ export function UnifiedGraphExplorer() {
 
     const counts = new Map<string, CoauthorshipOrganizationLegendItem>();
     for (const node of coauthorshipGraph.data.nodes) {
-      const key = node.primary_organization_id ?? null;
-      const mapKey = key ?? "__unassigned__";
+      const universityCode = node.university_code ?? null;
+      const organizationKey = node.primary_organization_id ?? null;
+      const mapKey = universityCode
+        ? `university:${universityCode}`
+        : organizationKey
+          ? `organization:${organizationKey}`
+          : "__unassigned__";
       const current = counts.get(mapKey);
       if (current) {
         current.count += 1;
@@ -191,10 +198,20 @@ export function UnifiedGraphExplorer() {
       }
 
       counts.set(mapKey, {
-        key,
-        label: node.primary_organization_name ?? "No organization",
-        color: getCoauthorshipOrganizationColor(key),
+        key: universityCode ?? organizationKey,
+        label:
+          node.university_name ?? node.primary_organization_name ?? "Not attributed",
+        color: universityCode
+          ? getCoauthorshipUniversityColor(universityCode)
+          : organizationKey
+            ? getCoauthorshipOrganizationColor(organizationKey)
+            : COAUTHORSHIP_FALLBACK_COLOR,
         count: 1,
+        kind: universityCode
+          ? "university"
+          : organizationKey
+            ? "organization"
+            : "fallback",
       });
     }
 
@@ -206,7 +223,9 @@ export function UnifiedGraphExplorer() {
     if (layer !== "coauthorship" || !coauthorshipGraph.data) {
       return false;
     }
-    return coauthorshipGraph.data.nodes.some((node) => !node.primary_organization_id);
+    return coauthorshipGraph.data.nodes.some(
+      (node) => !node.university_code && !node.primary_organization_id,
+    );
   }, [coauthorshipGraph.data, layer]);
 
   useEffect(() => {
@@ -479,7 +498,7 @@ export function UnifiedGraphExplorer() {
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-zinc-500">
                 Node colors
               </p>
-              <p className="text-xs text-zinc-400">Primary organization</p>
+              <p className="text-xs text-zinc-400">EUNICE first, organization fallback</p>
             </div>
             <div className="flex flex-wrap gap-2">
               {coauthorshipOrganizationLegend.map((item) => (
@@ -492,6 +511,9 @@ export function UnifiedGraphExplorer() {
                     style={{ backgroundColor: item.color }}
                   />
                   <span className="max-w-[220px] truncate">{item.label}</span>
+                  <span className="text-zinc-400">
+                    {item.kind === "university" ? "EUNICE" : item.kind === "organization" ? "Org" : "n/a"}
+                  </span>
                   <span className="text-zinc-400">{item.count}</span>
                 </div>
               ))}
@@ -502,7 +524,7 @@ export function UnifiedGraphExplorer() {
                     className="inline-flex h-2.5 w-2.5 rounded-full"
                     style={{ backgroundColor: COAUTHORSHIP_FALLBACK_COLOR }}
                   />
-                  <span>No organization</span>
+                  <span>Not attributed</span>
                 </div>
               ) : null}
             </div>

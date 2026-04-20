@@ -9,6 +9,9 @@ export type CoauthorshipNode = {
   normalized_name: string;
   primary_organization_id: string | null;
   primary_organization_name: string | null;
+  university_code: string | null;
+  university_name: string | null;
+  is_eunice_university: boolean;
   degree: number;
   strength: number;
   betweenness: number;

@@ -16,7 +16,12 @@ The current build reads from canonical PostgreSQL tables:
 Node derivation:
 - one node per canonical `researcher` that appears in `publication_author`
 - optional isolated nodes for researchers with only solo-authored publications
-- each node carries the researcher's `primary_organization_id` and `primary_organization_name`
+- each node carries:
+  - the researcher's `primary_organization_id` and `primary_organization_name`
+  - an EUNICE attribution payload:
+    - `university_code`
+    - `university_name`
+    - `is_eunice_university`
 
 Edge derivation:
 - one undirected edge between two researchers when they co-author at least one publication
@@ -123,29 +128,56 @@ Each build stores:
 
 This is intended for traceability and for later decisions about rebuild cadence.
 
-## Organization Context For MVP Visualization
+## EUNICE University Attribution
 
-The current coauthorship payload already exposes:
+The coauthorship payload still exposes:
 - `primary_organization_id`
 - `primary_organization_name`
 
-For the MVP, this primary organization is the only organization context used for node-level visual encoding in the frontend.
+In addition, the build now derives a governed EUNICE university attribution for each node when possible:
+- `university_code`
+- `university_name`
+- `is_eunice_university`
 
-The project deliberately does not attempt, at this stage, to:
-- collapse organizations to a final parent university
-- resolve multi-affiliation cases with advanced heuristics
-- define a fixed institutional palette
+Attribution rule:
+1. try to resolve the researcher's `primary_organization`
+2. if needed, walk `organization.parent_organization_id` to collapse departments and child organizations to a supported university
+3. if `primary_organization` is not attributable, inspect `researcher_affiliation`
+4. if affiliations resolve to exactly one EUNICE university, use it
+5. if affiliations resolve to multiple EUNICE universities or no governed university, leave the node unattributed
 
-The frontend therefore applies a simple rule:
-- same `primary_organization_id` -> same node color
-- different `primary_organization_id` -> different node color
-- missing organization -> neutral fallback color
+This logic is intentionally governed and closed:
+- only known EUNICE universities are mapped
+- non-EUNICE organizations do not receive arbitrary institutional colors
+- ambiguous cases fall back to a neutral visual state
+
+Frontend rendering precedence is slightly more permissive for readability:
+- if `university_code` is available, use the institutional EUNICE palette
+- otherwise, if `primary_organization_id` exists, use the deterministic organization fallback color already used by the MVP explorer
+- only nodes with no university attribution and no organization context stay neutral gray
+
+## Institutional Palette
+
+The governed palette currently used for coauthorship nodes is:
+- `karlstad` -> `#F4E600`
+- `vaasa` -> `#F5C439`
+- `btu` -> `#A6C60D`
+- `poznan-tech` -> `#00618E`
+- `unict` -> `#007DCB`
+- `peloponnese` -> `#A51317`
+- `cantabria` -> `#438D96`
+- `viseu` -> `#010101`
+- `umons` -> `#B60038`
+- `uphf` -> `#46B6C6`
+
+The same university code is also reused by the persisted SVG artifact colorization so API payloads, interactive frontend rendering and static graph artifacts stay aligned.
 
 ## Current Limitations
 
 - builds are explicit and synchronous; there is no background job orchestration yet
 - retrieval uses the materialized JSON payload, not direct reopening of the `.gt` file
 - edge metadata currently focuses on shared publications and collaboration years
-- organization context is limited to the researcher's primary organization
+- attribution still depends on canonical `primary_organization` and `researcher_affiliation` quality
+- multi-university affiliation cases remain intentionally unresolved
 - no incremental update strategy is implemented yet
 - no dedicated manual review workflow exists for graph anomalies or author disambiguation effects

@@ -89,10 +89,11 @@ When a filter is active, the explorer loads a backend subgraph instead of prunin
 ### Coauthorship node detail
 - researcher identity
 - degree, strength and betweenness
+- EUNICE university attribution when available
 - organization context
 - component and community ids
 - quick link to the researcher detail route
-- node color based on `primary_organization_id` with neutral fallback when missing
+- node color based on governed `university_code` with neutral fallback when not attributable
 
 ### Semantic node detail
 - publication identity
@@ -123,8 +124,10 @@ The UX is shared, but the node and edge semantics differ:
 - nodes are researchers
 - edges represent shared publications
 - edge weight is collaboration intensity
-- node color reflects the researcher's primary organization from the backend payload
-- the frontend derives the color deterministically from `primary_organization_id`, so the same organization keeps the same color across reloads
+- node color reflects the researcher's attributed EUNICE university from the backend payload
+- the frontend uses a fixed institutional palette keyed by `university_code`
+- if `university_code` is missing but `primary_organization_id` exists, the explorer falls back to the deterministic organization color used in the earlier MVP
+- only nodes with no university attribution and no organization context use the neutral fallback color
 
 ### Semantic graph
 - nodes are publications
@@ -138,6 +141,7 @@ The UX is shared, but the node and edge semantics differ:
 - no hover tooltips beyond selection-driven detail panels
 - no client-side graph editing
 - no background refresh or realtime synchronization
-- coauthorship coloring uses only `primary_organization_id`; it does not resolve parent-university attribution or advanced multi-affiliation cases
+- coauthorship coloring is intentionally limited to a governed EUNICE university set
+- ambiguous multi-university cases remain neutral instead of being forced into one institutional color
 
 The explorer is intentionally focused on reliable retrieval and readable exploration of the materialized backend graphs.

@@ -129,8 +129,10 @@ For the EUNICE seed, the operations view exposes:
 - the Graph API base URL
 - the fixed OpenAIRE community scope `eunice`
 - the fixed product type `publication`
+- the fixed demo date window `2026-01-01 -> 2026-12-31`
+- the pagination strategy (`cursor`)
+- the effective API page size
 - an optional overall publication cap
-- an optional publication year range
 
 The response preview intentionally exposes processed publication counts, new canonical rows and ambiguous-publication counts so the operator can understand how much of the demo dataset was actually materialized.
 

@@ -131,7 +131,7 @@ The backend currently follows these important choices:
 - canonical relational model in PostgreSQL, not direct exposure of raw OpenAIRE payloads
 - strong provenance via `source_record`
 - two distinct seed paths for MVP/demo data:
-  - community-scoped EUNICE seed via the OpenAIRE Graph API v2 as the main demo workflow
+  - community-scoped EUNICE seed via the OpenAIRE Graph API v2 as the main demo workflow, currently constrained to 2026 publications
   - local OpenAIRE Beginner's Kit archives as a secondary archive-based path
 - provider-based embeddings abstraction
 - materialized graph pipelines rather than live rebuilds on every request

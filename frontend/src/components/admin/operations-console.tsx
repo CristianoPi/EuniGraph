@@ -43,8 +43,6 @@ type SeedLoadForm = {
 
 type EUNICESeedForm = {
   max_publications: string;
-  publication_year_from: string;
-  publication_year_to: string;
 };
 
 type NormalizationForm = {
@@ -315,8 +313,6 @@ function EUNICESeedOperations() {
   const { handleSubmit, register } = useForm<EUNICESeedForm>({
     defaultValues: {
       max_publications: "250",
-      publication_year_from: "",
-      publication_year_to: "",
     },
   });
 
@@ -335,6 +331,11 @@ function EUNICESeedOperations() {
                 { label: "Community", value: status.data.community_id },
                 { label: "Product", value: status.data.product_type },
                 {
+                  label: "Date window",
+                  value: `${status.data.publication_date_from} -> ${status.data.publication_date_to}`,
+                },
+                { label: "Paging", value: `${status.data.pagination_mode} / ${status.data.page_size}` },
+                {
                   label: "Latest run",
                   value: status.data.latest_ingestion_status ?? "Not available",
                 },
@@ -349,7 +350,11 @@ function EUNICESeedOperations() {
                 <code className="mx-1 rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-700">
                   relCommunityId=eunice
                 </code>
-                and imports only publications plus embedded authors and organizations.
+                ,
+                <code className="mx-1 rounded bg-zinc-100 px-1.5 py-0.5 text-xs text-zinc-700">
+                  type=publication
+                </code>
+                and the fixed 2026 date window. It imports publications plus embedded authors and organizations.
               </p>
             </div>
           </div>
@@ -359,31 +364,20 @@ function EUNICESeedOperations() {
           onSubmit={handleSubmit((values) =>
             mutation.mutate({
               max_publications: optionalNumber(values.max_publications),
-              publication_year_from: optionalNumber(values.publication_year_from),
-              publication_year_to: optionalNumber(values.publication_year_to),
             }),
           )}
           className="space-y-3"
         >
-          <div className="grid gap-3 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
             <input
               {...register("max_publications")}
               className={inputClass}
               inputMode="numeric"
               placeholder="Max publications"
             />
-            <input
-              {...register("publication_year_from")}
-              className={inputClass}
-              inputMode="numeric"
-              placeholder="Optional year from"
-            />
-            <input
-              {...register("publication_year_to")}
-              className={inputClass}
-              inputMode="numeric"
-              placeholder="Optional year to"
-            />
+            <div className="rounded-[1rem] border border-[color:var(--border)] bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
+              2026 only
+            </div>
           </div>
           <button type="submit" disabled={mutation.isPending} className={buttonClass}>
             Load EUNICE seed

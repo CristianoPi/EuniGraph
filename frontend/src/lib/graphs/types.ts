@@ -143,6 +143,8 @@ export type CoauthorshipSubgraphFilters = {
   organization_id?: string;
   max_nodes?: number;
   min_edge_weight?: number;
+  min_degree?: number;
+  largest_component_only?: boolean;
   community_id?: number;
 };
 
@@ -152,6 +154,8 @@ export type SemanticSubgraphFilters = {
   publication_year?: number;
   max_nodes?: number;
   min_edge_weight?: number;
+  min_degree?: number;
+  largest_component_only?: boolean;
   community_id?: number;
 };
 

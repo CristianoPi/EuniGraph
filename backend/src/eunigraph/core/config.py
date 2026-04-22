@@ -58,7 +58,7 @@ class Settings(BaseSettings):
         alias="OPENAIRE_GRAPH_API_TIMEOUT_SECONDS",
     )
     openaire_graph_api_page_size: int = Field(
-        default=25,
+        default=100,
         alias="OPENAIRE_GRAPH_API_PAGE_SIZE",
     )
     openaire_eunice_seed_max_publications: int = Field(

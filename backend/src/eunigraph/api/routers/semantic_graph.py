@@ -3,7 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict
 from uuid import UUID
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from fastapi.responses import FileResponse
 from sqlalchemy.orm import Session
 
@@ -108,9 +108,11 @@ def get_semantic_subgraph(
     publication_id: UUID | None = None,
     organization_id: UUID | None = None,
     publication_year: int | None = None,
-    max_nodes: int | None = None,
-    min_edge_weight: float | None = None,
-    community_id: int | None = None,
+    max_nodes: int | None = Query(default=None, ge=1),
+    min_edge_weight: float | None = Query(default=None, ge=0),
+    min_degree: int | None = Query(default=None, ge=0, le=10000),
+    largest_component_only: bool = False,
+    community_id: int | None = Query(default=None, ge=0),
     session: Session = DB_SESSION,
     settings: Settings = APP_SETTINGS,
 ) -> SemanticGraphPayloadResponse:
@@ -120,6 +122,8 @@ def get_semantic_subgraph(
         publication_year=publication_year,
         max_nodes=max_nodes,
         min_edge_weight=min_edge_weight,
+        min_degree=min_degree,
+        largest_component_only=largest_component_only,
         community_id=community_id,
     )
     return SemanticGraphPayloadResponse(**payload)

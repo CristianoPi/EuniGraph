@@ -6,8 +6,12 @@ from types import SimpleNamespace
 from typing import Any, cast
 from uuid import UUID, uuid4
 
+from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from eunigraph.api.deps import get_db_session
+from eunigraph.api.routers import semantic_graph as semantic_graph_router
+from eunigraph.main import app
 from eunigraph.modules.catalog.infrastructure.models import (
     OrganizationModel,
     PublicationAuthorModel,
@@ -379,6 +383,346 @@ def test_filter_subgraph_by_publication_and_organization() -> None:
     assert subgraph["summary"]["node_count"] == 2
     assert subgraph["summary"]["edge_count"] == 1
     assert {node["id"] for node in subgraph["nodes"]} == {publication_id, related_id}
+
+
+def test_filter_subgraph_supports_largest_component_and_min_degree() -> None:
+    service = SemanticGraphService(cast(Session, FakeSession([])), _settings())
+    payload = {
+        "build_id": str(uuid4()),
+        "graph_type": "semantic_similarity",
+        "generated_at": "2026-04-22T12:00:00+00:00",
+        "summary": {
+            "node_count": 5,
+            "edge_count": 3,
+            "component_count": 2,
+            "community_count": 1,
+            "graph_version": "abc123",
+        },
+        "data_snapshot": {},
+        "nodes": [
+            {
+                "id": "p1",
+                "label": "P1",
+                "title": "P1",
+                "normalized_title": "p1",
+                "publication_year": 2026,
+                "doi": None,
+                "openaire_id": None,
+                "publication_type": None,
+                "language_code": None,
+                "journal_name": None,
+                "venue_name": None,
+                "authors": [],
+                "organization_ids": [],
+                "organization_names": [],
+                "degree": 1,
+                "strength": 0.9,
+                "betweenness": 0.0,
+                "component_id": 0,
+                "community_id": 0,
+            },
+            {
+                "id": "p2",
+                "label": "P2",
+                "title": "P2",
+                "normalized_title": "p2",
+                "publication_year": 2026,
+                "doi": None,
+                "openaire_id": None,
+                "publication_type": None,
+                "language_code": None,
+                "journal_name": None,
+                "venue_name": None,
+                "authors": [],
+                "organization_ids": [],
+                "organization_names": [],
+                "degree": 2,
+                "strength": 1.8,
+                "betweenness": 0.0,
+                "component_id": 0,
+                "community_id": 0,
+            },
+            {
+                "id": "p3",
+                "label": "P3",
+                "title": "P3",
+                "normalized_title": "p3",
+                "publication_year": 2026,
+                "doi": None,
+                "openaire_id": None,
+                "publication_type": None,
+                "language_code": None,
+                "journal_name": None,
+                "venue_name": None,
+                "authors": [],
+                "organization_ids": [],
+                "organization_names": [],
+                "degree": 1,
+                "strength": 0.9,
+                "betweenness": 0.0,
+                "component_id": 0,
+                "community_id": 0,
+            },
+            {
+                "id": "p4",
+                "label": "P4",
+                "title": "P4",
+                "normalized_title": "p4",
+                "publication_year": 2026,
+                "doi": None,
+                "openaire_id": None,
+                "publication_type": None,
+                "language_code": None,
+                "journal_name": None,
+                "venue_name": None,
+                "authors": [],
+                "organization_ids": [],
+                "organization_names": [],
+                "degree": 1,
+                "strength": 0.6,
+                "betweenness": 0.0,
+                "component_id": 1,
+                "community_id": 0,
+            },
+            {
+                "id": "p5",
+                "label": "P5",
+                "title": "P5",
+                "normalized_title": "p5",
+                "publication_year": 2026,
+                "doi": None,
+                "openaire_id": None,
+                "publication_type": None,
+                "language_code": None,
+                "journal_name": None,
+                "venue_name": None,
+                "authors": [],
+                "organization_ids": [],
+                "organization_names": [],
+                "degree": 1,
+                "strength": 0.6,
+                "betweenness": 0.0,
+                "component_id": 1,
+                "community_id": 0,
+            },
+        ],
+        "edges": [
+            {
+                "source": "p1",
+                "target": "p2",
+                "weight": 0.9,
+                "similarity_score": 0.9,
+                "rank": 1,
+                "mutual_match": True,
+                "source_rank": 1,
+                "target_rank": 1,
+                "source_score": 0.9,
+                "target_score": 0.9,
+            },
+            {
+                "source": "p2",
+                "target": "p3",
+                "weight": 0.9,
+                "similarity_score": 0.9,
+                "rank": 1,
+                "mutual_match": True,
+                "source_rank": 1,
+                "target_rank": 1,
+                "source_score": 0.9,
+                "target_score": 0.9,
+            },
+            {
+                "source": "p4",
+                "target": "p5",
+                "weight": 0.6,
+                "similarity_score": 0.6,
+                "rank": 1,
+                "mutual_match": True,
+                "source_rank": 1,
+                "target_rank": 1,
+                "source_score": 0.6,
+                "target_score": 0.6,
+            },
+        ],
+    }
+
+    subgraph = service._filter_subgraph(
+        payload,
+        publication_id=None,
+        organization_id=None,
+        publication_year=None,
+        max_nodes=None,
+        min_edge_weight=None,
+        min_degree=2,
+        largest_component_only=True,
+        community_id=None,
+    )
+
+    assert {node["id"] for node in subgraph["nodes"]} == {"p2"}
+    assert subgraph["summary"]["node_count"] == 1
+    assert subgraph["summary"]["edge_count"] == 0
+    assert {node["id"]: node["degree"] for node in subgraph["nodes"]} == {
+        "p2": 2,
+    }
+
+
+def test_filter_subgraph_largest_component_is_applied_after_max_nodes() -> None:
+    service = SemanticGraphService(cast(Session, FakeSession([])), _settings())
+    payload = {
+        "build_id": str(uuid4()),
+        "graph_type": "semantic_similarity",
+        "generated_at": "2026-04-22T12:00:00+00:00",
+        "summary": {
+            "node_count": 6,
+            "edge_count": 5,
+            "component_count": 1,
+            "community_count": 1,
+            "graph_version": "abc123",
+        },
+        "data_snapshot": {},
+        "nodes": [
+            {
+                "id": node_id,
+                "label": node_id.upper(),
+                "title": node_id.upper(),
+                "normalized_title": node_id,
+                "publication_year": 2026,
+                "doi": None,
+                "openaire_id": None,
+                "publication_type": None,
+                "language_code": None,
+                "journal_name": None,
+                "venue_name": None,
+                "authors": [],
+                "organization_ids": [],
+                "organization_names": [],
+                "degree": degree,
+                "strength": float(degree),
+                "betweenness": 0.0,
+                "component_id": 0,
+                "community_id": 0,
+            }
+            for node_id, degree in [
+                ("p1", 2),
+                ("p2", 2),
+                ("p3", 2),
+                ("p4", 2),
+                ("p5", 1),
+                ("p6", 1),
+            ]
+        ],
+        "edges": [
+            {
+                "source": "p1",
+                "target": "p2",
+                "weight": 0.95,
+                "similarity_score": 0.95,
+                "rank": 1,
+                "mutual_match": True,
+                "source_rank": 1,
+                "target_rank": 1,
+                "source_score": 0.95,
+                "target_score": 0.95,
+            },
+            {
+                "source": "p2",
+                "target": "p3",
+                "weight": 0.9,
+                "similarity_score": 0.9,
+                "rank": 1,
+                "mutual_match": True,
+                "source_rank": 1,
+                "target_rank": 1,
+                "source_score": 0.9,
+                "target_score": 0.9,
+            },
+            {
+                "source": "p3",
+                "target": "p4",
+                "weight": 0.85,
+                "similarity_score": 0.85,
+                "rank": 1,
+                "mutual_match": True,
+                "source_rank": 1,
+                "target_rank": 1,
+                "source_score": 0.85,
+                "target_score": 0.85,
+            },
+            {
+                "source": "p4",
+                "target": "p5",
+                "weight": 0.8,
+                "similarity_score": 0.8,
+                "rank": 1,
+                "mutual_match": True,
+                "source_rank": 1,
+                "target_rank": 1,
+                "source_score": 0.8,
+                "target_score": 0.8,
+            },
+            {
+                "source": "p5",
+                "target": "p6",
+                "weight": 0.75,
+                "similarity_score": 0.75,
+                "rank": 1,
+                "mutual_match": True,
+                "source_rank": 1,
+                "target_rank": 1,
+                "source_score": 0.75,
+                "target_score": 0.75,
+            },
+        ],
+    }
+
+    subgraph = service._filter_subgraph(
+        payload,
+        publication_id=None,
+        organization_id=None,
+        publication_year=None,
+        max_nodes=4,
+        min_edge_weight=None,
+        min_degree=None,
+        largest_component_only=True,
+        community_id=None,
+    )
+
+    assert subgraph["summary"]["component_count"] == 1
+
+
+def test_semantic_subgraph_accepts_more_than_2500_nodes(monkeypatch: Any) -> None:
+    class StubService:
+        def get_subgraph(self, **_: object) -> dict[str, object]:
+            return {
+                "build_id": str(uuid4()),
+                "graph_type": "semantic_similarity",
+                "generated_at": "2026-04-22T12:00:00Z",
+                "summary": {
+                    "node_count": 0,
+                    "edge_count": 0,
+                    "component_count": 0,
+                    "community_count": None,
+                    "graph_version": "test-version",
+                },
+                "nodes": [],
+                "edges": [],
+                "data_snapshot": {},
+            }
+
+    def override_db_session() -> object:
+        return object()
+
+    app.dependency_overrides[get_db_session] = override_db_session
+    monkeypatch.setattr(semantic_graph_router, "_service", lambda *_: StubService())
+
+    try:
+        client = TestClient(app)
+        response = client.get("/api/v1/semantic-graph/subgraph?max_nodes=5000")
+    finally:
+        app.dependency_overrides.clear()
+
+    assert response.status_code == 200
+    assert response.json()["summary"]["node_count"] == 0
 
 
 def test_render_svg_for_graph_uses_scatter_layout_without_labels() -> None:

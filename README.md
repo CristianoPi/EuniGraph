@@ -71,13 +71,18 @@ This is the path the project is now optimized around for:
 - end-to-end demo preparation from the admin console
 
 The workflow uses the OpenAIRE Graph API v2 with:
-- `GET /graph/v2/researchProducts?relCommunityId=eunice&type=publication`
+- `GET /graph/v2/researchProducts?relCommunityId=eunice&type=publication&fromPublicationDate=2026-01-01&toPublicationDate=2026-12-31`
 
 It imports:
 - publications
 - authors/researchers
 - organizations embedded in publication metadata
 - canonical relations such as `publication_author`, `publication_organization` and derived `researcher_affiliation`
+
+Operational notes:
+- the current demo seed is intentionally limited to **2026 publications only**
+- the loader uses OpenAIRE Graph API v2 cursor pagination
+- publications are persisted in batches per API page to keep backend memory and SQLAlchemy session growth under control on larger loads
 
 Main entry points:
 - frontend admin console: `/admin/operations`

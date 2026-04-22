@@ -19,6 +19,8 @@ The workflow uses the OpenAIRE Graph API v2 and fetches only research products f
 
 - `relCommunityId=eunice`
 - `type=publication`
+- `fromPublicationDate=2026-01-01`
+- `toPublicationDate=2026-12-31`
 
 The current implementation intentionally stays publication-centered because the canonical model, browsing UI and graph layers are all publication-first.
 
@@ -26,7 +28,7 @@ The current implementation intentionally stays publication-centered because the 
 
 The EUNICE seed imports only data relevant to the OpenAIRE community slice for `eunice`:
 
-- `publication` rows returned by `GET /graph/v2/researchProducts?relCommunityId=eunice&type=publication`
+- `publication` rows returned by `GET /graph/v2/researchProducts?relCommunityId=eunice&type=publication&fromPublicationDate=2026-01-01&toPublicationDate=2026-12-31`
 - `organization` rows embedded in publication metadata
 - `researcher` rows derived from publication author metadata
 - `publication_author`
@@ -45,10 +47,30 @@ Confirmed source-of-truth syntax for the current workflow:
   - `GET https://api.openaire.eu/graph/v2/researchProducts?relCommunityId=eunice`
 - publications only:
   - `GET https://api.openaire.eu/graph/v2/researchProducts?relCommunityId=eunice&type=publication`
+- publications only, constrained to the current demo year:
+  - `GET https://api.openaire.eu/graph/v2/researchProducts?relCommunityId=eunice&type=publication&fromPublicationDate=2026-01-01&toPublicationDate=2026-12-31`
 
-The implemented seed uses the publication-only variant.
+The implemented seed uses the publication-only 2026-constrained variant because it produces a smaller and more coherent demo slice.
 
 OpenAIRE Graph documentation also states that `v2/researchProducts` responses contain `organizations` and `communities`, which is what the current mapping relies on.
+
+## EUNICE Pagination And Robustness
+
+The current EUNICE seed uses:
+
+- `pageSize` clamped to the OpenAIRE-supported range `1..100`
+- cursor pagination first, starting from `cursor=*`
+- fallback to page-based pagination only if the response does not expose `header.nextCursor`
+- one persistence commit per fetched API page
+
+The backend no longer accumulates the full remote result set in memory before persisting it.
+
+This change was introduced because the previous implementation:
+
+- collected all `researchProducts` in a Python list before writing them
+- kept a long-lived SQLAlchemy session with growing ORM state and raw provenance payloads
+
+That combination was the main cause of the backend becoming fragile once the load moved beyond roughly 1000 publications.
 
 ## EUNICE Affiliation Rule
 

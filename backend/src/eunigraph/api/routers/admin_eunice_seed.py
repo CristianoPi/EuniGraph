@@ -65,7 +65,5 @@ def load_eunice_seed(
     return OpenAireGraphEuniceSeedLoadResponse.model_validate(
         OpenAireGraphEuniceSeeder(session, settings).load(
             max_publications=payload.max_publications,
-            publication_year_from=payload.publication_year_from,
-            publication_year_to=payload.publication_year_to,
         ),
     )

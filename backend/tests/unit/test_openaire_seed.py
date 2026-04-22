@@ -52,6 +52,7 @@ class FakeSeedSession:
         self.rollback_calls = 0
         self.flush_calls = 0
         self.ingestion_runs: dict[UUID, IngestionRunModel] = {}
+        self.records_by_id: dict[UUID, object] = {}
         self.get_values = dict(get_values or {})
 
     def add(self, value: object) -> None:
@@ -63,6 +64,8 @@ class FakeSeedSession:
             object_id = getattr(value, "id", None)
             if object_id is None:
                 cast(Any, value).id = uuid4()
+                object_id = cast(UUID, cast(Any, value).id)
+            self.records_by_id[cast(UUID, object_id)] = value
             if isinstance(value, IngestionRunModel):
                 self.ingestion_runs[value.id] = value
 
@@ -83,10 +86,15 @@ class FakeSeedSession:
             return list(self.scalars_values.pop(0))
         return list(self.existing_relations)
 
-    def get(self, _model: type[object], key: UUID) -> IngestionRunModel | None:
+    def get(self, _model: type[object], key: UUID) -> object | None:
         if key in self.get_values:
-            return cast(IngestionRunModel | None, self.get_values[key])
+            return self.get_values[key]
+        if key in self.records_by_id:
+            return self.records_by_id[key]
         return self.ingestion_runs.get(key)
+
+    def expunge_all(self) -> None:
+        return None
 
 
 class FailingSeeder(OpenAireBeginnersKitSeeder):
@@ -123,7 +131,7 @@ def _settings() -> object:
         openaire_beginners_kit_path="data/openaire/beginners_kit",
         openaire_graph_api_base_url="https://api.openaire.eu/graph",
         openaire_graph_api_timeout_seconds=30,
-        openaire_graph_api_page_size=25,
+        openaire_graph_api_page_size=100,
         openaire_eunice_seed_max_publications=250,
     )
 
@@ -381,6 +389,10 @@ def test_eunice_seed_status_exposes_community_configuration() -> None:
     assert status_payload.api_base_url == "https://api.openaire.eu/graph"
     assert status_payload.community_id == "eunice"
     assert status_payload.product_type == "publication"
+    assert status_payload.publication_date_from == "2026-01-01"
+    assert status_payload.publication_date_to == "2026-12-31"
+    assert status_payload.pagination_mode == "cursor"
+    assert status_payload.page_size == 100
     assert status_payload.default_max_publications == 250
 
 
@@ -420,6 +432,57 @@ def test_graph_api_client_falls_back_from_beta_to_production_on_405(monkeypatch:
 
     assert payload == [{"id": "openorgs::1"}]
     assert client.active_base_url == "https://api.openaire.eu/graph"
+
+
+def test_graph_api_client_iterates_research_products_with_cursor(monkeypatch: Any) -> None:
+    client = OpenAireGraphApiClient(
+        base_url="https://api.openaire.eu/graph",
+        timeout_seconds=10,
+    )
+
+    responses = {
+        "cursor=%2A": (
+            b'{"header":{"numFound":3,"pageSize":2,"nextCursor":"cursor-2"},'
+            b'"results":[{"id":"pub-1"},{"id":"pub-2"}]}'
+        ),
+        "cursor=cursor-2": (
+            b'{"header":{"numFound":3,"pageSize":1},"results":[{"id":"pub-3"}]}'
+        ),
+    }
+
+    class _Response:
+        def __init__(self, payload: bytes) -> None:
+            self._payload = payload
+
+        def __enter__(self) -> _Response:
+            return self
+
+        def __exit__(self, exc_type: Any, exc: Any, tb: Any) -> None:
+            return None
+
+        def read(self) -> bytes:
+            return self._payload
+
+    def fake_urlopen(req: Any, timeout: int) -> _Response:
+        for marker, payload in responses.items():
+            if marker in req.full_url:
+                return _Response(payload)
+        raise AssertionError(f"Unexpected URL {req.full_url}")
+
+    monkeypatch.setattr(request, "urlopen", fake_urlopen)
+
+    pages = list(
+        client.iter_research_product_pages(
+            max_results=None,
+            page_size=2,
+            relCommunityId="eunice",
+            type="publication",
+            fromPublicationDate="2026-01-01",
+            toPublicationDate="2026-12-31",
+        )
+    )
+
+    assert [[item["id"] for item in page] for page in pages] == [["pub-1", "pub-2"], ["pub-3"]]
 
 
 def test_extract_publication_organizations_deduplicates_eunice_variants() -> None:
@@ -474,18 +537,19 @@ def test_materialize_candidate_affiliations_links_all_authors_when_single_org() 
     )
     session = FakeSeedSession(
         scalars_values=[[author_a, author_b], [], [], []],
-        get_values={publication.id: publication},
     )
     seeder = OpenAireGraphEuniceSeeder(cast(Session, session), cast(Any, _settings()))
     organization_id = uuid4()
-    seeder._affiliation_candidate_orgs_by_publication[publication.id] = {organization_id}
 
-    ambiguous = seeder._materialize_candidate_affiliations()
+    ambiguous = seeder._materialize_candidate_affiliations_for_publication(
+        publication=publication,
+        organization_ids={organization_id},
+    )
 
     affiliations = [
         item for item in session.added if isinstance(item, ResearcherAffiliationModel)
     ]
-    assert ambiguous == 0
+    assert ambiguous is False
     assert len(affiliations) == 2
     assert {affiliation.organization_id for affiliation in affiliations} == {organization_id}
 
@@ -497,13 +561,15 @@ def test_materialize_candidate_affiliations_skips_multi_org_publications() -> No
         normalized_title="collaborative publication",
         canonical_source_record_id=uuid4(),
     )
-    session = FakeSeedSession(get_values={publication.id: publication})
+    session = FakeSeedSession()
     seeder = OpenAireGraphEuniceSeeder(cast(Session, session), cast(Any, _settings()))
-    seeder._affiliation_candidate_orgs_by_publication[publication.id] = {uuid4(), uuid4()}
 
-    ambiguous = seeder._materialize_candidate_affiliations()
+    ambiguous = seeder._materialize_candidate_affiliations_for_publication(
+        publication=publication,
+        organization_ids={uuid4(), uuid4()},
+    )
 
-    assert ambiguous == 1
+    assert ambiguous is True
     assert not [
         item for item in session.added if isinstance(item, ResearcherAffiliationModel)
     ]

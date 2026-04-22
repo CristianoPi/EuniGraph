@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 from dataclasses import dataclass
@@ -41,6 +42,9 @@ OPENAIRE_GRAPH_EUNICE_SOURCE_NAME = "OpenAIRE Graph EUNICE Seed"
 OPENAIRE_GRAPH_EUNICE_SOURCE_TYPE = "openaire_graph_eunice"
 OPENAIRE_GRAPH_EUNICE_COMMUNITY_ID = "eunice"
 OPENAIRE_GRAPH_EUNICE_PRODUCT_TYPE = "publication"
+OPENAIRE_GRAPH_EUNICE_PUBLICATION_DATE_FROM = "2026-01-01"
+OPENAIRE_GRAPH_EUNICE_PUBLICATION_DATE_TO = "2026-12-31"
+OPENAIRE_GRAPH_EUNICE_PAGINATION_MODE = "cursor"
 
 
 @dataclass(frozen=True, slots=True)
@@ -48,6 +52,10 @@ class EUNICESeedStatus:
     api_base_url: str
     community_id: str
     product_type: str
+    publication_date_from: str
+    publication_date_to: str
+    pagination_mode: str
+    page_size: int
     default_max_publications: int
     table_counts: dict[str, int]
     latest_ingestion_run_id: str | None
@@ -77,53 +85,64 @@ class OpenAireGraphApiClient:
         payload = self._get_json("/v1/organizations", {"pageSize": str(page_size), **params})
         return self._extract_results(payload, path="/v1/organizations")
 
-    def iter_research_products(
+    def iter_research_product_pages(
         self,
         *,
         max_results: int | None,
         page_size: int,
         **params: str,
-    ) -> list[dict[str, Any]]:
-        page = 1
+    ) -> Any:
         yielded = 0
-        results: list[dict[str, Any]] = []
         effective_page_size = max(1, min(page_size, 100))
+        cursor = "*"
+        page = 1
+        use_cursor = True
 
         while True:
             remaining = None if max_results is None else max_results - yielded
             if remaining is not None and remaining <= 0:
-                return results
+                return
 
             current_page_size = (
                 min(effective_page_size, remaining)
                 if remaining is not None
                 else effective_page_size
             )
-            payload = self._get_json(
-                "/v2/researchProducts",
-                {
-                    "page": str(page),
-                    "pageSize": str(current_page_size),
-                    **params,
-                },
-            )
+            query_params = {"pageSize": str(current_page_size), **params}
+            if use_cursor:
+                query_params["cursor"] = cursor
+            else:
+                query_params["page"] = str(page)
+
+            payload = self._get_json("/v2/researchProducts", query_params)
             page_results = self._extract_results(payload, path="/v2/researchProducts")
             if not page_results:
-                return results
+                return
 
-            results.extend(page_results)
+            yield page_results
             yielded += len(page_results)
 
             header = payload.get("header") if isinstance(payload, dict) else None
+            next_cursor = self._extract_next_cursor(header)
             total_found = self._extract_positive_int(header, "numFound")
+            if max_results is not None and yielded >= max_results:
+                return
+            if len(page_results) < current_page_size:
+                return
+            if use_cursor and next_cursor:
+                cursor = next_cursor
+                continue
+            if use_cursor:
+                use_cursor = False
+                page = 2
+                continue
+            if total_found is not None and yielded >= total_found:
+                return
             page_size_value = self._extract_positive_int(header, "pageSize") or current_page_size
             current_page = self._extract_positive_int(header, "page") or page
             if total_found is not None and current_page * page_size_value >= total_found:
-                return results
-            if len(page_results) < current_page_size:
-                return results
-
-            page += 1
+                return
+            page = current_page + 1
 
     def _get_json(self, path: str, params: dict[str, str]) -> dict[str, Any]:
         query = parse.urlencode({key: value for key, value in params.items() if value})
@@ -237,6 +256,15 @@ class OpenAireGraphApiClient:
             return None
         return parsed if parsed >= 0 else None
 
+    def _extract_next_cursor(self, payload: Any) -> str | None:
+        if not isinstance(payload, dict):
+            return None
+        value = payload.get("nextCursor")
+        if not isinstance(value, str):
+            return None
+        normalized = value.strip()
+        return normalized or None
+
 
 class OpenAireGraphEuniceSeeder(OpenAireBeginnersKitSeeder):
     def __init__(self, session: Session, settings: Settings) -> None:
@@ -245,7 +273,7 @@ class OpenAireGraphEuniceSeeder(OpenAireBeginnersKitSeeder):
             base_url=settings.openaire_graph_api_base_url,
             timeout_seconds=settings.openaire_graph_api_timeout_seconds,
         )
-        self._affiliation_candidate_orgs_by_publication: dict[UUID, set[UUID]] = {}
+        self._source_record_refs: dict[tuple[UUID, str, str], tuple[UUID, str]] = {}
 
     def get_status(self) -> EUNICESeedStatus:  # type: ignore[override]
         latest_run = self.session.scalar(
@@ -259,6 +287,10 @@ class OpenAireGraphEuniceSeeder(OpenAireBeginnersKitSeeder):
             api_base_url=self._api.base_url,
             community_id=OPENAIRE_GRAPH_EUNICE_COMMUNITY_ID,
             product_type=OPENAIRE_GRAPH_EUNICE_PRODUCT_TYPE,
+            publication_date_from=OPENAIRE_GRAPH_EUNICE_PUBLICATION_DATE_FROM,
+            publication_date_to=OPENAIRE_GRAPH_EUNICE_PUBLICATION_DATE_TO,
+            pagination_mode=OPENAIRE_GRAPH_EUNICE_PAGINATION_MODE,
+            page_size=max(1, min(self.settings.openaire_graph_api_page_size, 100)),
             default_max_publications=self.settings.openaire_eunice_seed_max_publications,
             table_counts=self._snapshot_table_counts(),
             latest_ingestion_run_id=str(latest_run.id) if latest_run else None,
@@ -270,8 +302,6 @@ class OpenAireGraphEuniceSeeder(OpenAireBeginnersKitSeeder):
         *,
         limit_per_file: int | None = None,
         max_publications: int | None = None,
-        publication_year_from: int | None = None,
-        publication_year_to: int | None = None,
     ) -> dict[str, int | str | None]:
         if max_publications is None and limit_per_file is not None:
             max_publications = limit_per_file
@@ -280,67 +310,91 @@ class OpenAireGraphEuniceSeeder(OpenAireBeginnersKitSeeder):
             if max_publications is not None
             else self.settings.openaire_eunice_seed_max_publications
         )
+        effective_page_size = max(1, min(self.settings.openaire_graph_api_page_size, 100))
         before_counts = self._snapshot_table_counts()
         data_source = self._get_or_create_logical_source()
+        data_source_id = data_source.id
         logger.info(
             "OpenAIRE Graph EUNICE seed started api_base_url=%s community_id=%s "
-            "product_type=%s max_publications=%s publication_year_from=%s publication_year_to=%s",
+            "product_type=%s max_publications=%s publication_date_from=%s publication_date_to=%s "
+            "page_size=%s pagination_mode=%s",
             self._api.base_url,
             OPENAIRE_GRAPH_EUNICE_COMMUNITY_ID,
             OPENAIRE_GRAPH_EUNICE_PRODUCT_TYPE,
             max_results,
-            publication_year_from,
-            publication_year_to,
+            OPENAIRE_GRAPH_EUNICE_PUBLICATION_DATE_FROM,
+            OPENAIRE_GRAPH_EUNICE_PUBLICATION_DATE_TO,
+            effective_page_size,
+            OPENAIRE_GRAPH_EUNICE_PAGINATION_MODE,
         )
 
         ingestion_run = IngestionRunModel(
-            data_source_id=data_source.id,
+            data_source_id=data_source_id,
             status="running",
             triggered_by="admin-api",
             raw_config={
                 "community_id": OPENAIRE_GRAPH_EUNICE_COMMUNITY_ID,
                 "product_type": OPENAIRE_GRAPH_EUNICE_PRODUCT_TYPE,
                 "max_publications": max_results,
-                "publication_year_from": publication_year_from,
-                "publication_year_to": publication_year_to,
+                "publication_date_from": OPENAIRE_GRAPH_EUNICE_PUBLICATION_DATE_FROM,
+                "publication_date_to": OPENAIRE_GRAPH_EUNICE_PUBLICATION_DATE_TO,
+                "page_size": effective_page_size,
+                "pagination_mode": OPENAIRE_GRAPH_EUNICE_PAGINATION_MODE,
             },
         )
         self.session.add(ingestion_run)
         self.session.flush()
+        ingestion_run_id = ingestion_run.id
         self.session.commit()
 
-        processed_publication_ids: set[UUID] = set()
+        processed_publications = 0
         ambiguous_publications = 0
+        batch_number = 0
         try:
-            publication_payloads = self._api.iter_research_products(
+            for publication_payloads in self._api.iter_research_product_pages(
                 max_results=max_results,
-                page_size=self.settings.openaire_graph_api_page_size,
+                page_size=effective_page_size,
                 relCommunityId=OPENAIRE_GRAPH_EUNICE_COMMUNITY_ID,
                 type=OPENAIRE_GRAPH_EUNICE_PRODUCT_TYPE,
                 sortBy="publicationDate DESC",
-                fromPublicationDate=str(publication_year_from) if publication_year_from else "",
-                toPublicationDate=str(publication_year_to) if publication_year_to else "",
-            )
-            self._process_publication_payloads(
-                publication_payloads,
-                data_source_id=data_source.id,
-                ingestion_run_id=ingestion_run.id,
-                processed_publication_ids=processed_publication_ids,
-            )
+                fromPublicationDate=OPENAIRE_GRAPH_EUNICE_PUBLICATION_DATE_FROM,
+                toPublicationDate=OPENAIRE_GRAPH_EUNICE_PUBLICATION_DATE_TO,
+            ):
+                batch_number += 1
+                batch_processed, batch_ambiguous = self._process_publication_payloads(
+                    publication_payloads,
+                    data_source_id=data_source_id,
+                    ingestion_run_id=ingestion_run_id,
+                )
+                processed_publications += batch_processed
+                ambiguous_publications += batch_ambiguous
+                logger.info(
+                    "OpenAIRE Graph EUNICE seed committing batch ingestion_run_id=%s "
+                    "batch_number=%s batch_size=%s processed_publications=%s "
+                    "ambiguous_publications=%s",
+                    ingestion_run_id,
+                    batch_number,
+                    batch_processed,
+                    processed_publications,
+                    ambiguous_publications,
+                )
+                self.session.commit()
+                self._reset_batch_state()
 
-            ambiguous_publications = self._materialize_candidate_affiliations()
-            ingestion_run.status = "completed"
-            ingestion_run.completed_at = datetime.now(UTC)
+            persisted_run = self.session.get(IngestionRunModel, ingestion_run_id)
+            if persisted_run is not None:
+                persisted_run.status = "completed"
+                persisted_run.completed_at = datetime.now(UTC)
             self.session.commit()
         except SeedLoadError as exc:
             self.session.rollback()
             logger.warning(
                 "OpenAIRE Graph EUNICE seed failed ingestion_run_id=%s detail=%s",
-                ingestion_run.id,
+                ingestion_run_id,
                 exc.detail(),
                 exc_info=True,
             )
-            self._mark_ingestion_run_failed(ingestion_run.id, exc.detail())
+            self._mark_ingestion_run_failed(ingestion_run_id, exc.detail())
             raise exc.to_http_exception() from exc
         except SQLAlchemyError as exc:
             self.session.rollback()
@@ -352,9 +406,9 @@ class OpenAireGraphEuniceSeeder(OpenAireBeginnersKitSeeder):
             )
             logger.exception(
                 "OpenAIRE Graph EUNICE seed database failure ingestion_run_id=%s",
-                ingestion_run.id,
+                ingestion_run_id,
             )
-            self._mark_ingestion_run_failed(ingestion_run.id, seed_error.detail())
+            self._mark_ingestion_run_failed(ingestion_run_id, seed_error.detail())
             raise seed_error.to_http_exception() from exc
         except Exception as exc:  # pragma: no cover - defensive path
             self.session.rollback()
@@ -366,20 +420,26 @@ class OpenAireGraphEuniceSeeder(OpenAireBeginnersKitSeeder):
             )
             logger.exception(
                 "OpenAIRE Graph EUNICE seed unexpected failure ingestion_run_id=%s",
-                ingestion_run.id,
+                ingestion_run_id,
             )
-            self._mark_ingestion_run_failed(ingestion_run.id, seed_error.detail())
+            self._mark_ingestion_run_failed(ingestion_run_id, seed_error.detail())
             raise seed_error.to_http_exception() from exc
 
         after_counts = self._snapshot_table_counts()
-        data_source.base_url = self._api.active_base_url
+        persisted_source = self.session.get(DataSourceModel, data_source_id)
+        if persisted_source is not None:
+            persisted_source.base_url = self._api.active_base_url
         self.session.commit()
         return {
             "api_base_url": self._api.active_base_url,
             "community_id": OPENAIRE_GRAPH_EUNICE_COMMUNITY_ID,
-            "ingestion_run_id": str(ingestion_run.id),
+            "publication_date_from": OPENAIRE_GRAPH_EUNICE_PUBLICATION_DATE_FROM,
+            "publication_date_to": OPENAIRE_GRAPH_EUNICE_PUBLICATION_DATE_TO,
+            "pagination_mode": OPENAIRE_GRAPH_EUNICE_PAGINATION_MODE,
+            "page_size": effective_page_size,
+            "ingestion_run_id": str(ingestion_run_id),
             "max_publications": max_results,
-            "publication_records_processed": len(processed_publication_ids),
+            "publication_records_processed": processed_publications,
             "new_organizations": after_counts["organization"] - before_counts["organization"],
             "new_researchers": after_counts["researcher"] - before_counts["researcher"],
             "new_publications": after_counts["publication"] - before_counts["publication"],
@@ -400,8 +460,9 @@ class OpenAireGraphEuniceSeeder(OpenAireBeginnersKitSeeder):
         *,
         data_source_id: UUID,
         ingestion_run_id: UUID,
-        processed_publication_ids: set[UUID],
-    ) -> None:
+    ) -> tuple[int, int]:
+        processed = 0
+        ambiguous = 0
         for publication_payload in publication_payloads:
             transformed_publication = self._to_legacy_publication_payload(publication_payload)
             source_identifier = self._payload_identifier(transformed_publication)
@@ -426,12 +487,14 @@ class OpenAireGraphEuniceSeeder(OpenAireBeginnersKitSeeder):
                 ingestion_run_id=ingestion_run_id,
                 source_record_id=source_record.id,
             )
-            if organization_ids:
-                self._affiliation_candidate_orgs_by_publication.setdefault(
-                    publication.id,
-                    set(),
-                ).update(organization_ids)
-            processed_publication_ids.add(publication.id)
+            if self._materialize_candidate_affiliations_for_publication(
+                publication=publication,
+                organization_ids=organization_ids,
+            ):
+                ambiguous += 1
+            processed += 1
+
+        return processed, ambiguous
 
     def _upsert_publication_organizations(
         self,
@@ -477,37 +540,102 @@ class OpenAireGraphEuniceSeeder(OpenAireBeginnersKitSeeder):
 
         return linked_organization_ids
 
-    def _materialize_candidate_affiliations(self) -> int:
-        ambiguous_publications = 0
+    def _materialize_candidate_affiliations_for_publication(
+        self,
+        *,
+        publication: PublicationModel,
+        organization_ids: set[UUID],
+    ) -> bool:
+        if not organization_ids:
+            return False
+        if len(organization_ids) != 1:
+            return True
+        if publication.canonical_source_record_id is None:
+            return False
 
-        for (
-            publication_id,
-            organization_ids,
-        ) in self._affiliation_candidate_orgs_by_publication.items():
-            if len(organization_ids) != 1:
-                ambiguous_publications += 1
-                continue
-
-            publication = self.session.get(PublicationModel, publication_id)
-            if publication is None or publication.canonical_source_record_id is None:
-                continue
-
-            organization_id = next(iter(organization_ids))
-            authors = list(
-                self.session.scalars(
-                    select(PublicationAuthorModel).where(
-                        PublicationAuthorModel.publication_id == publication_id,
-                    )
+        organization_id = next(iter(organization_ids))
+        authors = list(
+            self.session.scalars(
+                select(PublicationAuthorModel).where(
+                    PublicationAuthorModel.publication_id == publication.id,
                 )
             )
-            for author in authors:
-                self._upsert_researcher_affiliation(
-                    researcher_id=author.researcher_id,
-                    organization_id=organization_id,
-                    source_record_id=publication.canonical_source_record_id,
-                )
+        )
+        for author in authors:
+            self._upsert_researcher_affiliation(
+                researcher_id=author.researcher_id,
+                organization_id=organization_id,
+                source_record_id=publication.canonical_source_record_id,
+            )
+        return False
 
-        return ambiguous_publications
+    def _create_source_record(
+        self,
+        *,
+        data_source_id: UUID,
+        ingestion_run_id: UUID,
+        entity_type: str,
+        source_identifier: str,
+        payload: dict[str, Any],
+    ) -> SourceRecordModel:
+        checksum = self._payload_checksum(payload)
+        cache_key = (ingestion_run_id, entity_type, source_identifier)
+        cached_ref = self._source_record_refs.get(cache_key)
+        if cached_ref is not None:
+            cached_record_id, cached_checksum = cached_ref
+            if cached_checksum != checksum:
+                logger.warning(
+                    "OpenAIRE Graph EUNICE seed encountered duplicate source record with "
+                    "changed payload "
+                    "ingestion_run_id=%s entity_type=%s source_identifier=%s",
+                    ingestion_run_id,
+                    entity_type,
+                    source_identifier,
+                )
+            else:
+                logger.info(
+                    "OpenAIRE Graph EUNICE seed reused duplicate source record "
+                    "ingestion_run_id=%s entity_type=%s source_identifier=%s",
+                    ingestion_run_id,
+                    entity_type,
+                    source_identifier,
+                )
+            cached_record = self.session.get(SourceRecordModel, cached_record_id)
+            if cached_record is not None:
+                return cached_record
+
+        record = SourceRecordModel(
+            data_source_id=data_source_id,
+            ingestion_run_id=ingestion_run_id,
+            entity_type=entity_type,
+            source_identifier=source_identifier,
+            checksum=checksum,
+            raw_payload=payload,
+        )
+        self.session.add(record)
+        self.session.flush()
+        self._source_record_refs[cache_key] = (record.id, checksum)
+        return record
+
+    def _payload_checksum(self, payload: dict[str, Any]) -> str:
+        return hashlib.sha256(
+            json.dumps(payload, sort_keys=True).encode("utf-8"),
+        ).hexdigest()
+
+    def _reset_batch_state(self) -> None:
+        self._source_record_cache.clear()
+        self._organization_by_openaire_id.clear()
+        self._organization_by_ror_id.clear()
+        self._organization_by_normalized_name.clear()
+        self._researcher_by_orcid.clear()
+        self._researcher_by_normalized_name.clear()
+        self._publication_by_openaire_id.clear()
+        self._publication_by_doi.clear()
+        self._publication_by_title_year.clear()
+        self._researcher_affiliations_by_researcher.clear()
+        expunge_all = getattr(self.session, "expunge_all", None)
+        if callable(expunge_all):
+            expunge_all()
 
     def _map_publication_affiliation_relation(
         self,

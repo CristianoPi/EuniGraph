@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field
 
 
 class OpenAireSeedLoadRequest(BaseModel):
@@ -44,6 +44,10 @@ class OpenAireGraphEuniceSeedStatusResponse(BaseModel):
     api_base_url: str
     community_id: str
     product_type: str
+    publication_date_from: str
+    publication_date_to: str
+    pagination_mode: str
+    page_size: int
     default_max_publications: int
     table_counts: dict[str, int]
     latest_ingestion_run_id: str | None
@@ -52,23 +56,15 @@ class OpenAireGraphEuniceSeedStatusResponse(BaseModel):
 
 class OpenAireGraphEuniceSeedLoadRequest(BaseModel):
     max_publications: int | None = Field(default=None, ge=1, le=2000)
-    publication_year_from: int | None = Field(default=None, ge=1000, le=3000)
-    publication_year_to: int | None = Field(default=None, ge=1000, le=3000)
-
-    @model_validator(mode="after")
-    def validate_year_range(self) -> OpenAireGraphEuniceSeedLoadRequest:
-        if (
-            self.publication_year_from is not None
-            and self.publication_year_to is not None
-            and self.publication_year_from > self.publication_year_to
-        ):
-            raise ValueError("publication_year_from cannot be greater than publication_year_to")
-        return self
 
 
 class OpenAireGraphEuniceSeedLoadResponse(BaseModel):
     api_base_url: str
     community_id: str
+    publication_date_from: str
+    publication_date_to: str
+    pagination_mode: str
+    page_size: int
     ingestion_run_id: str | None
     max_publications: int | None
     publication_records_processed: int

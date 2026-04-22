@@ -166,6 +166,8 @@ class CoauthorshipGraphService:
         organization_id: UUID | None = None,
         max_nodes: int | None = None,
         min_edge_weight: int | None = None,
+        min_degree: int | None = None,
+        largest_component_only: bool = False,
         community_id: int | None = None,
     ) -> dict[str, Any]:
         payload = self._load_materialized_payload()
@@ -175,6 +177,8 @@ class CoauthorshipGraphService:
             organization_id=organization_id,
             max_nodes=max_nodes,
             min_edge_weight=min_edge_weight,
+            min_degree=min_degree,
+            largest_component_only=largest_component_only,
             community_id=community_id,
         )
 
@@ -745,6 +749,8 @@ class CoauthorshipGraphService:
         organization_id: UUID | None,
         max_nodes: int | None,
         min_edge_weight: int | None,
+        min_degree: int | None = None,
+        largest_component_only: bool = False,
         community_id: int | None,
     ) -> dict[str, Any]:
         nodes = list(payload["nodes"])
@@ -764,6 +770,13 @@ class CoauthorshipGraphService:
                 for node in nodes
                 if node.get("primary_organization_id") == organization_id_str
             }
+
+        if min_degree is not None:
+            selected_node_ids, edges = self._apply_min_degree_filter(
+                selected_node_ids=selected_node_ids,
+                edges=edges,
+                min_degree=min_degree,
+            )
 
         if researcher_id is not None:
             researcher_id_str = str(researcher_id)
@@ -808,11 +821,28 @@ class CoauthorshipGraphService:
             )
             selected_node_ids = {node["id"] for node in ranked_nodes[:max_nodes]}
 
+        if largest_component_only:
+            selected_node_ids = self._largest_component_node_ids(
+                selected_node_ids=selected_node_ids,
+                edges=edges,
+            )
+
         filtered_nodes = [node for node in nodes if node["id"] in selected_node_ids]
         filtered_edges = [
             edge
             for edge in edges
             if edge["source"] in selected_node_ids and edge["target"] in selected_node_ids
+        ]
+        filtered_nodes = [node for node in nodes if node["id"] in selected_node_ids]
+        visualization_edges = [
+            {
+                **edge,
+                # The graph explorer does not need the full publication-id list for every edge.
+                # Returning an empty list keeps the subgraph payload much lighter for
+                # large views while preserving counts and temporal metadata used in the UI.
+                "shared_publication_ids": [],
+            }
+            for edge in filtered_edges
         ]
 
         return {
@@ -840,9 +870,95 @@ class CoauthorshipGraphService:
                 "graph_version": payload["summary"]["graph_version"],
             },
             "nodes": filtered_nodes,
-            "edges": filtered_edges,
+            "edges": visualization_edges,
             "data_snapshot": payload["data_snapshot"],
         }
+
+    def _apply_min_degree_filter(
+        self,
+        *,
+        selected_node_ids: set[str],
+        edges: list[dict[str, Any]],
+        min_degree: int,
+    ) -> tuple[set[str], list[dict[str, Any]]]:
+        if min_degree <= 0:
+            return selected_node_ids, edges
+        filtered_edges = [
+            edge
+            for edge in edges
+            if edge["source"] in selected_node_ids and edge["target"] in selected_node_ids
+        ]
+        degrees = self._compute_filtered_node_metrics(
+            selected_node_ids=selected_node_ids,
+            edges=filtered_edges,
+        )
+        retained_node_ids = {
+            node_id
+            for node_id, metrics in degrees.items()
+            if metrics["degree"] >= min_degree
+        }
+        retained_edges = [
+            edge
+            for edge in filtered_edges
+            if edge["source"] in retained_node_ids and edge["target"] in retained_node_ids
+        ]
+        return retained_node_ids, retained_edges
+
+    def _largest_component_node_ids(
+        self,
+        *,
+        selected_node_ids: set[str],
+        edges: list[dict[str, Any]],
+    ) -> set[str]:
+        if not selected_node_ids:
+            return set()
+        adjacency: dict[str, set[str]] = {node_id: set() for node_id in selected_node_ids}
+        for edge in edges:
+            source = edge["source"]
+            target = edge["target"]
+            if source in adjacency and target in adjacency:
+                adjacency[source].add(target)
+                adjacency[target].add(source)
+
+        visited: set[str] = set()
+        largest_component: set[str] = set()
+        for node_id in selected_node_ids:
+            if node_id in visited:
+                continue
+            stack = [node_id]
+            component: set[str] = set()
+            while stack:
+                current = stack.pop()
+                if current in visited:
+                    continue
+                visited.add(current)
+                component.add(current)
+                stack.extend(adjacency[current] - visited)
+            if len(component) > len(largest_component):
+                largest_component = component
+        return largest_component
+
+    def _compute_filtered_node_metrics(
+        self,
+        *,
+        selected_node_ids: set[str],
+        edges: list[dict[str, Any]],
+    ) -> dict[str, dict[str, int | float]]:
+        metrics = {
+            node_id: {"degree": 0, "strength": 0.0}
+            for node_id in selected_node_ids
+        }
+        for edge in edges:
+            source = edge["source"]
+            target = edge["target"]
+            weight = float(edge["weight"])
+            if source in metrics:
+                metrics[source]["degree"] = int(metrics[source]["degree"]) + 1
+                metrics[source]["strength"] = float(metrics[source]["strength"]) + weight
+            if target in metrics:
+                metrics[target]["degree"] = int(metrics[target]["degree"]) + 1
+                metrics[target]["strength"] = float(metrics[target]["strength"]) + weight
+        return metrics
 
     def _load_graph_tool(self) -> dict[str, Any]:
         try:

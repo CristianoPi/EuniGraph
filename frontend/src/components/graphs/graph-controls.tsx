@@ -8,6 +8,8 @@ type CoauthorshipControlState = {
   communityId: string;
   maxNodes: string;
   minEdgeWeight: string;
+  minDegree: string;
+  largestComponentOnly: boolean;
 };
 
 type SemanticControlState = {
@@ -17,6 +19,8 @@ type SemanticControlState = {
   communityId: string;
   maxNodes: string;
   minEdgeWeight: string;
+  minDegree: string;
+  largestComponentOnly: boolean;
 };
 
 type GraphControlsProps = {
@@ -24,8 +28,11 @@ type GraphControlsProps = {
   onLayerChange: (layer: GraphLayer) => void;
   coauthorship: CoauthorshipControlState;
   semantic: SemanticControlState;
-  onCoauthorshipChange: (key: keyof CoauthorshipControlState, value: string) => void;
-  onSemanticChange: (key: keyof SemanticControlState, value: string) => void;
+  onCoauthorshipChange: (
+    key: keyof CoauthorshipControlState,
+    value: string | boolean,
+  ) => void;
+  onSemanticChange: (key: keyof SemanticControlState, value: string | boolean) => void;
   onApply: () => void;
   onResetFilters: () => void;
   onResetView: () => void;
@@ -150,12 +157,39 @@ export function GraphControls({
           placeholder={layer === "coauthorship" ? "Min edge weight" : "Min similarity weight"}
           className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
         />
+        <input
+          value={layer === "coauthorship" ? coauthorship.minDegree : semantic.minDegree}
+          onChange={(event) =>
+            layer === "coauthorship"
+              ? onCoauthorshipChange("minDegree", event.target.value)
+              : onSemanticChange("minDegree", event.target.value)
+          }
+          placeholder="Min degree"
+          className="rounded-[1rem] border border-[color:var(--border)] bg-white px-4 py-3 text-sm outline-none focus:border-zinc-900"
+        />
         <div className="rounded-[1rem] border border-dashed border-zinc-200 bg-white px-4 py-3 text-sm leading-6 text-zinc-500">
           {layer === "coauthorship"
             ? "Researchers linked by shared publications."
             : "Publications linked by semantic score."}
         </div>
       </div>
+
+      <label className="inline-flex items-center gap-3 rounded-full border border-[color:var(--border)] bg-white px-4 py-2 text-sm text-zinc-700">
+        <input
+          type="checkbox"
+          checked={
+            layer === "coauthorship"
+              ? coauthorship.largestComponentOnly
+              : semantic.largestComponentOnly
+          }
+          onChange={(event) =>
+            layer === "coauthorship"
+              ? onCoauthorshipChange("largestComponentOnly", event.target.checked)
+              : onSemanticChange("largestComponentOnly", event.target.checked)
+          }
+        />
+        Largest connected component
+      </label>
 
       <div className="flex flex-wrap gap-3">
         <button

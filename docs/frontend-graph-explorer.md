@@ -70,6 +70,8 @@ The explorer only exposes filters already supported by the backend.
 - `organization_id`
 - `max_nodes`
 - `min_edge_weight`
+- `min_degree`
+- `largest_component_only`
 - `community_id`
 
 ### Semantic filters
@@ -78,6 +80,8 @@ The explorer only exposes filters already supported by the backend.
 - `publication_year`
 - `max_nodes`
 - `min_edge_weight`
+- `min_degree`
+- `largest_component_only`
 - `community_id`
 
 The explorer initializes with `max_nodes=250`, so the default experience loads a backend subgraph instead of the full persisted graph payload.
@@ -85,6 +89,10 @@ The explorer initializes with `max_nodes=250`, so the default experience loads a
 If the operator clears `max_nodes` and other filters, the explorer can still load the full persisted graph payload.
 
 When a filter is active, the explorer always loads a backend subgraph instead of pruning locally.
+
+The frontend keeps the existing visual design, but the rendering path has been hardened for larger graph slices:
+- Cytoscape is updated in place when filters change instead of being torn down and recreated for every payload refresh
+- filter application is deferred through React transitions to keep the controls responsive while larger subgraphs are loading
 
 ## 7. Detail Panels
 
@@ -146,6 +154,5 @@ The UX is shared, but the node and edge semantics differ:
 - coauthorship coloring is intentionally limited to a governed EUNICE university set
 - ambiguous multi-university cases remain neutral instead of being forced into one institutional color
 - the first-load default uses `max_nodes=250` to avoid throwing the full graph at the browser
-- the coauthorship subgraph API still enforces a bounded `max_nodes` request rather than allowing unbounded oversized payloads
 
 The explorer is intentionally focused on reliable retrieval and readable exploration of the materialized backend graphs.

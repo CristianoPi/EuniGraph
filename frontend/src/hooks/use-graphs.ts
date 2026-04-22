@@ -27,6 +27,8 @@ function hasCoauthorshipFilters(filters: CoauthorshipSubgraphFilters): boolean {
       filters.organization_id ||
       filters.max_nodes ||
       filters.min_edge_weight ||
+      filters.min_degree ||
+      filters.largest_component_only ||
       filters.community_id !== undefined,
   );
 }
@@ -38,6 +40,8 @@ function hasSemanticFilters(filters: SemanticSubgraphFilters): boolean {
       filters.publication_year ||
       filters.max_nodes ||
       filters.min_edge_weight ||
+      filters.min_degree ||
+      filters.largest_component_only ||
       filters.community_id !== undefined,
   );
 }

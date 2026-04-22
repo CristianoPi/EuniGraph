@@ -42,6 +42,10 @@ export type EUNICESeedStatus = {
   api_base_url: string;
   community_id: string;
   product_type: string;
+  publication_date_from: string;
+  publication_date_to: string;
+  pagination_mode: string;
+  page_size: number;
   default_max_publications: number;
   table_counts: Record<string, number>;
   latest_ingestion_run_id: string | null;
@@ -50,13 +54,15 @@ export type EUNICESeedStatus = {
 
 export type EUNICESeedLoadRequest = {
   max_publications?: number | null;
-  publication_year_from?: number | null;
-  publication_year_to?: number | null;
 };
 
 export type EUNICESeedLoadResponse = {
   api_base_url: string;
   community_id: string;
+  publication_date_from: string;
+  publication_date_to: string;
+  pagination_mode: string;
+  page_size: number;
   ingestion_run_id: string | null;
   max_publications: number | null;
   publication_records_processed: number;

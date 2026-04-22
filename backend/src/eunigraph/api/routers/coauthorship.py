@@ -26,8 +26,9 @@ router = APIRouter(
 )
 DB_SESSION = Depends(get_db_session)
 APP_SETTINGS = Depends(get_app_settings)
-MAX_NODES_QUERY = Query(default=None, ge=1, le=2500)
+MAX_NODES_QUERY = Query(default=None, ge=1)
 MIN_EDGE_WEIGHT_QUERY = Query(default=None, ge=1, le=1000)
+MIN_DEGREE_QUERY = Query(default=None, ge=0, le=10000)
 
 
 def _service(session: Session, settings: Settings) -> CoauthorshipGraphService:
@@ -102,6 +103,8 @@ def get_coauthorship_subgraph(
     organization_id: UUID | None = None,
     max_nodes: int | None = MAX_NODES_QUERY,
     min_edge_weight: int | None = MIN_EDGE_WEIGHT_QUERY,
+    min_degree: int | None = MIN_DEGREE_QUERY,
+    largest_component_only: bool = False,
     community_id: int | None = Query(default=None, ge=0),
     session: Session = DB_SESSION,
     settings: Settings = APP_SETTINGS,
@@ -111,6 +114,8 @@ def get_coauthorship_subgraph(
         organization_id=organization_id,
         max_nodes=max_nodes,
         min_edge_weight=min_edge_weight,
+        min_degree=min_degree,
+        largest_component_only=largest_component_only,
         community_id=community_id,
     )
     return CoauthorshipGraphPayloadResponse(**payload)

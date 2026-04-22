@@ -295,6 +295,8 @@ def test_filter_subgraph_researcher_and_weight_limit() -> None:
     assert subgraph["summary"]["node_count"] == 2
     assert subgraph["summary"]["edge_count"] == 1
     assert {node["id"] for node in subgraph["nodes"]} == {center_id, neighbor_heavy_id}
+    assert subgraph["edges"][0]["shared_publication_count"] == 3
+    assert subgraph["edges"][0]["shared_publication_ids"] == []
 
 
 def test_filter_subgraph_prioritizes_attributed_nodes_when_max_nodes_is_applied() -> None:
@@ -374,6 +376,237 @@ def test_filter_subgraph_prioritizes_attributed_nodes_when_max_nodes_is_applied(
         "attributed-medium",
         "attributed-light",
     }
+
+
+def test_filter_subgraph_supports_largest_component_and_min_degree() -> None:
+    service = CoauthorshipGraphService(cast(Session, FakeSession([])), _settings())
+    payload = {
+        "build_id": str(uuid4()),
+        "graph_type": "coauthorship",
+        "generated_at": "2026-04-22T10:00:00+00:00",
+        "summary": {
+            "node_count": 5,
+            "edge_count": 3,
+            "component_count": 2,
+            "community_count": 1,
+            "graph_version": "abc123",
+        },
+        "data_snapshot": {},
+        "nodes": [
+            {
+                "id": "a",
+                "label": "A",
+                "full_name": "A",
+                "normalized_name": "a",
+                "primary_organization_id": None,
+                "primary_organization_name": None,
+                "degree": 2,
+                "strength": 4,
+                "betweenness": 0.0,
+                "component_id": 0,
+                "community_id": 0,
+            },
+            {
+                "id": "b",
+                "label": "B",
+                "full_name": "B",
+                "normalized_name": "b",
+                "primary_organization_id": None,
+                "primary_organization_name": None,
+                "degree": 2,
+                "strength": 4,
+                "betweenness": 0.0,
+                "component_id": 0,
+                "community_id": 0,
+            },
+            {
+                "id": "c",
+                "label": "C",
+                "full_name": "C",
+                "normalized_name": "c",
+                "primary_organization_id": None,
+                "primary_organization_name": None,
+                "degree": 2,
+                "strength": 4,
+                "betweenness": 0.0,
+                "component_id": 0,
+                "community_id": 0,
+            },
+            {
+                "id": "d",
+                "label": "D",
+                "full_name": "D",
+                "normalized_name": "d",
+                "primary_organization_id": None,
+                "primary_organization_name": None,
+                "degree": 1,
+                "strength": 1,
+                "betweenness": 0.0,
+                "component_id": 1,
+                "community_id": 0,
+            },
+            {
+                "id": "e",
+                "label": "E",
+                "full_name": "E",
+                "normalized_name": "e",
+                "primary_organization_id": None,
+                "primary_organization_name": None,
+                "degree": 1,
+                "strength": 1,
+                "betweenness": 0.0,
+                "component_id": 1,
+                "community_id": 0,
+            },
+        ],
+        "edges": [
+            {
+                "source": "a",
+                "target": "b",
+                "weight": 2,
+                "shared_publication_count": 2,
+                "first_collaboration_year": 2024,
+                "last_collaboration_year": 2025,
+                "shared_publication_ids": ["p1", "p2"],
+            },
+            {
+                "source": "b",
+                "target": "c",
+                "weight": 2,
+                "shared_publication_count": 2,
+                "first_collaboration_year": 2024,
+                "last_collaboration_year": 2025,
+                "shared_publication_ids": ["p3", "p4"],
+            },
+            {
+                "source": "d",
+                "target": "e",
+                "weight": 1,
+                "shared_publication_count": 1,
+                "first_collaboration_year": 2025,
+                "last_collaboration_year": 2025,
+                "shared_publication_ids": ["p5"],
+            },
+        ],
+    }
+
+    subgraph = service._filter_subgraph(
+        payload,
+        researcher_id=None,
+        organization_id=None,
+        max_nodes=None,
+        min_edge_weight=None,
+        min_degree=2,
+        largest_component_only=True,
+        community_id=None,
+    )
+
+    assert {node["id"] for node in subgraph["nodes"]} == {"b"}
+    assert subgraph["summary"]["node_count"] == 1
+    assert subgraph["summary"]["edge_count"] == 0
+    assert {node["id"]: node["degree"] for node in subgraph["nodes"]} == {
+        "b": 2,
+    }
+
+
+def test_filter_subgraph_largest_component_is_applied_after_max_nodes() -> None:
+    service = CoauthorshipGraphService(cast(Session, FakeSession([])), _settings())
+    payload = {
+        "build_id": str(uuid4()),
+        "graph_type": "coauthorship",
+        "generated_at": "2026-04-22T10:00:00+00:00",
+        "summary": {
+            "node_count": 6,
+            "edge_count": 5,
+            "component_count": 1,
+            "community_count": 1,
+            "graph_version": "abc123",
+        },
+        "data_snapshot": {},
+        "nodes": [
+            {
+                "id": node_id,
+                "label": node_id.upper(),
+                "full_name": node_id.upper(),
+                "normalized_name": node_id,
+                "primary_organization_id": None,
+                "primary_organization_name": None,
+                "degree": degree,
+                "strength": degree * 2,
+                "betweenness": 0.0,
+                "component_id": 0,
+                "community_id": 0,
+            }
+            for node_id, degree in [
+                ("a", 2),
+                ("b", 2),
+                ("c", 2),
+                ("d", 2),
+                ("e", 1),
+                ("f", 1),
+            ]
+        ],
+        "edges": [
+            {
+                "source": "a",
+                "target": "b",
+                "weight": 5,
+                "shared_publication_count": 5,
+                "first_collaboration_year": 2024,
+                "last_collaboration_year": 2025,
+                "shared_publication_ids": ["p1"],
+            },
+            {
+                "source": "b",
+                "target": "c",
+                "weight": 4,
+                "shared_publication_count": 4,
+                "first_collaboration_year": 2024,
+                "last_collaboration_year": 2025,
+                "shared_publication_ids": ["p2"],
+            },
+            {
+                "source": "c",
+                "target": "d",
+                "weight": 3,
+                "shared_publication_count": 3,
+                "first_collaboration_year": 2024,
+                "last_collaboration_year": 2025,
+                "shared_publication_ids": ["p3"],
+            },
+            {
+                "source": "d",
+                "target": "e",
+                "weight": 2,
+                "shared_publication_count": 2,
+                "first_collaboration_year": 2024,
+                "last_collaboration_year": 2025,
+                "shared_publication_ids": ["p4"],
+            },
+            {
+                "source": "e",
+                "target": "f",
+                "weight": 1,
+                "shared_publication_count": 1,
+                "first_collaboration_year": 2024,
+                "last_collaboration_year": 2025,
+                "shared_publication_ids": ["p5"],
+            },
+        ],
+    }
+
+    subgraph = service._filter_subgraph(
+        payload,
+        researcher_id=None,
+        organization_id=None,
+        max_nodes=4,
+        min_edge_weight=None,
+        min_degree=None,
+        largest_component_only=True,
+        community_id=None,
+    )
+
+    assert subgraph["summary"]["component_count"] == 1
 
 
 def test_compute_graph_version_is_stable_for_equivalent_inputs() -> None:

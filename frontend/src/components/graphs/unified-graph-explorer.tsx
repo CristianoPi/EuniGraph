@@ -1,7 +1,13 @@
 "use client";
 
-import type { Core, ElementDefinition, EventObject, NodeSingular, EdgeSingular } from "cytoscape";
-import { useEffect, useMemo, useRef, useState } from "react";
+import type {
+  Core,
+  ElementDefinition,
+  EventObject,
+  NodeSingular,
+  EdgeSingular,
+} from "cytoscape";
+import { useDeferredValue, useEffect, useMemo, useRef, useState, useTransition } from "react";
 
 import { EmptyState } from "@/components/states/empty-state";
 import { ErrorState } from "@/components/states/error-state";
@@ -44,6 +50,8 @@ type CoauthorshipControlState = {
   communityId: string;
   maxNodes: string;
   minEdgeWeight: string;
+  minDegree: string;
+  largestComponentOnly: boolean;
 };
 
 type SemanticControlState = {
@@ -53,6 +61,8 @@ type SemanticControlState = {
   communityId: string;
   maxNodes: string;
   minEdgeWeight: string;
+  minDegree: string;
+  largestComponentOnly: boolean;
 };
 
 function toOptionalNumber(value: string): number | undefined {
@@ -72,6 +82,8 @@ function normalizeCoauthorshipFilters(
     community_id: toOptionalNumber(state.communityId),
     max_nodes: toOptionalNumber(state.maxNodes),
     min_edge_weight: toOptionalNumber(state.minEdgeWeight),
+    min_degree: toOptionalNumber(state.minDegree),
+    largest_component_only: state.largestComponentOnly || undefined,
   };
 }
 
@@ -83,11 +95,17 @@ function normalizeSemanticFilters(state: SemanticControlState): SemanticSubgraph
     community_id: toOptionalNumber(state.communityId),
     max_nodes: toOptionalNumber(state.maxNodes),
     min_edge_weight: toOptionalNumber(state.minEdgeWeight),
+    min_degree: toOptionalNumber(state.minDegree),
+    largest_component_only: state.largestComponentOnly || undefined,
   };
 }
 
 function hasAnyValue(values: Record<string, string>): boolean {
   return Object.values(values).some((value) => value.trim().length > 0);
+}
+
+function hasAnyToggle(values: { largestComponentOnly: boolean }): boolean {
+  return values.largestComponentOnly;
 }
 
 type CoauthorshipOrganizationLegendItem = {
@@ -99,6 +117,7 @@ type CoauthorshipOrganizationLegendItem = {
 };
 
 const DEFAULT_GRAPH_NODE_LIMIT = 250;
+const LARGE_GRAPH_NODE_THRESHOLD = 1500;
 
 function defaultNodeLimitValue(): string {
   return String(DEFAULT_GRAPH_NODE_LIMIT);
@@ -128,6 +147,8 @@ export function UnifiedGraphExplorer({
   initialLayer = "coauthorship",
 }: UnifiedGraphExplorerProps) {
   const [layer, setLayer] = useState<GraphLayer>(initialLayer);
+  const [isApplyingFilters, startGraphTransition] = useTransition();
+  const [isCanvasRendering, setIsCanvasRendering] = useState(false);
 
   const [coauthorshipDraft, setCoauthorshipDraft] = useState<CoauthorshipControlState>({
     researcherId: "",
@@ -135,6 +156,8 @@ export function UnifiedGraphExplorer({
     communityId: "",
     maxNodes: defaultNodeLimitValue(),
     minEdgeWeight: "",
+    minDegree: "",
+    largestComponentOnly: false,
   });
   const [semanticDraft, setSemanticDraft] = useState<SemanticControlState>({
     publicationId: "",
@@ -143,6 +166,8 @@ export function UnifiedGraphExplorer({
     communityId: "",
     maxNodes: defaultNodeLimitValue(),
     minEdgeWeight: "",
+    minDegree: "",
+    largestComponentOnly: false,
   });
 
   const [coauthorshipFilters, setCoauthorshipFilters] = useState<CoauthorshipSubgraphFilters>({
@@ -177,6 +202,9 @@ export function UnifiedGraphExplorer({
   const activeStatus = layer === "coauthorship" ? coauthorshipStatus : semanticStatus;
   const activeGraph = layer === "coauthorship" ? coauthorshipGraph : semanticGraph;
   const activeMetrics = layer === "coauthorship" ? coauthorshipMetrics : semanticMetrics;
+  const activeNodeCount = activeGraph.data?.nodes.length ?? 0;
+  const activeEdgeCount = activeGraph.data?.edges.length ?? 0;
+  const isLargeGraph = activeNodeCount >= LARGE_GRAPH_NODE_THRESHOLD;
 
   const elements = useMemo<ElementDefinition[]>(() => {
     if (!activeGraph.data) {
@@ -187,6 +215,7 @@ export function UnifiedGraphExplorer({
       ? mapCoauthorshipElements(activeGraph.data.nodes as CoauthorshipNode[], activeGraph.data.edges as CoauthorshipEdge[])
       : mapSemanticElements(activeGraph.data.nodes as SemanticNode[], activeGraph.data.edges as SemanticEdge[]);
   }, [activeGraph.data, layer]);
+  const deferredElements = useDeferredValue(elements);
 
   const nodeMap = useMemo(() => {
     if (!activeGraph.data) {
@@ -259,14 +288,91 @@ export function UnifiedGraphExplorer({
     );
   }, [coauthorshipGraph.data, layer]);
 
+  const layoutConfig = useMemo(
+    () => ({
+      name: "cose",
+      animate: false,
+      fit: true,
+      padding: 36,
+      nodeRepulsion: isLargeGraph ? 4200 : 8000,
+      idealEdgeLength: layer === "coauthorship" ? 80 : 110,
+      refresh: isLargeGraph ? 12 : 20,
+      randomize: true,
+      componentSpacing: isLargeGraph ? 48 : 80,
+      gravity: isLargeGraph ? 0.7 : 0.4,
+      numIter: isLargeGraph ? 220 : 700,
+      initialTemp: isLargeGraph ? 80 : 160,
+      coolingFactor: isLargeGraph ? 0.97 : 0.95,
+      minTemp: 1,
+    }),
+    [isLargeGraph, layer],
+  );
+
+  const cytoscapeStyle = useMemo(
+    () => [
+      {
+        selector: "node",
+        style: {
+          width: "data(size)",
+          height: "data(size)",
+          label: "",
+          "background-color": "data(nodeColor)",
+          "border-color": "#ffffff",
+          "border-width": 2,
+          opacity: 0.9,
+        },
+      },
+      {
+        selector: "node:selected",
+        style: {
+          label: "data(label)",
+          "text-wrap": "wrap" as const,
+          "text-max-width": "160px",
+          "font-size": "12px",
+          color: "#18181b",
+          "text-background-color": "#ffffff",
+          "text-background-opacity": 0.95,
+          "text-background-padding": "6px",
+          "text-background-shape": "roundrectangle",
+          "text-margin-y": -22,
+          "border-color": "#18181b",
+          "border-width": 3,
+        },
+      },
+      {
+        selector: "edge",
+        style: {
+          width: "data(lineWidth)",
+          "line-color":
+            layer === "coauthorship"
+              ? "rgba(24, 24, 27, 0.22)"
+              : "rgba(245, 158, 11, 0.35)",
+          "curve-style": "bezier" as const,
+          opacity: 0.72,
+        },
+      },
+      {
+        selector: "edge:selected",
+        style: {
+          width: "mapData(lineWidth, 1, 8, 3, 10)",
+          "line-color": "#18181b",
+          opacity: 1,
+        },
+      },
+    ],
+    [layer],
+  );
+
   useEffect(() => {
     let active = true;
+    let renderFallbackTimeout: ReturnType<typeof setTimeout> | null = null;
+    let layoutFrameId: number | null = null;
 
     async function mountGraph() {
       if (!canvasRef.current) {
         return;
       }
-
+      setIsCanvasRendering(true);
       const cytoscape = (await import("cytoscape")).default;
       if (!active || !canvasRef.current) {
         return;
@@ -275,68 +381,35 @@ export function UnifiedGraphExplorer({
       cyRef.current?.destroy();
       cyRef.current = cytoscape({
         container: canvasRef.current,
-        elements,
-        layout: {
-          name: "cose",
-          animate: false,
-          fit: true,
-          padding: 36,
-          nodeRepulsion: 8000,
-          idealEdgeLength: layer === "coauthorship" ? 80 : 110,
-        },
-        style: [
-          {
-            selector: "node",
-            style: {
-              width: "data(size)",
-              height: "data(size)",
-              label: "",
-              "background-color": "data(nodeColor)",
-              "border-color": "#ffffff",
-              "border-width": 2,
-              opacity: 0.9,
-            },
-          },
-          {
-            selector: "node:selected",
-            style: {
-              label: "data(label)",
-              "text-wrap": "wrap",
-              "text-max-width": "160px",
-              "font-size": "12px",
-              color: "#18181b",
-              "text-background-color": "#ffffff",
-              "text-background-opacity": 0.95,
-              "text-background-padding": "6px",
-              "text-background-shape": "roundrectangle",
-              "text-margin-y": -22,
-              "border-color": "#18181b",
-              "border-width": 3,
-            },
-          },
-          {
-            selector: "edge",
-            style: {
-              width: "data(lineWidth)",
-              "line-color":
-                layer === "coauthorship"
-                  ? "rgba(24, 24, 27, 0.22)"
-                  : "rgba(245, 158, 11, 0.35)",
-              "curve-style": "bezier",
-              opacity: 0.72,
-            },
-          },
-          {
-            selector: "edge:selected",
-            style: {
-              width: "mapData(lineWidth, 1, 8, 3, 10)",
-              "line-color": "#18181b",
-              opacity: 1,
-            },
-          },
-        ],
+        elements: deferredElements,
+        style: cytoscapeStyle as any,
         wheelSensitivity: 0.18,
+        pixelRatio: 1,
+        textureOnViewport: isLargeGraph,
+        hideEdgesOnViewport: isLargeGraph,
+        motionBlur: false,
       });
+
+      const finishCanvasRendering = () => {
+        if (active) {
+          setIsCanvasRendering(false);
+        }
+      };
+
+      cyRef.current.one("render", finishCanvasRendering);
+
+      const layout = cyRef.current.layout(layoutConfig);
+      layout.one("layoutstop", finishCanvasRendering);
+      layoutFrameId = requestAnimationFrame(() => {
+        if (active) {
+          layout.run();
+        }
+      });
+
+      renderFallbackTimeout = setTimeout(
+        finishCanvasRendering,
+        isLargeGraph ? 2200 : 1200,
+      );
 
       cyRef.current.on("tap", "node", (event: EventObject) => {
         const target = event.target as NodeSingular;
@@ -362,10 +435,17 @@ export function UnifiedGraphExplorer({
 
     return () => {
       active = false;
+      if (renderFallbackTimeout) {
+        clearTimeout(renderFallbackTimeout);
+      }
+      if (layoutFrameId !== null) {
+        cancelAnimationFrame(layoutFrameId);
+      }
+      setIsCanvasRendering(false);
       cyRef.current?.destroy();
       cyRef.current = null;
     };
-  }, [elements, layer]);
+  }, [deferredElements, cytoscapeStyle, isLargeGraph, layoutConfig, layer]);
 
   function handleLayerChange(nextLayer: GraphLayer) {
     setLayer(nextLayer);
@@ -375,10 +455,14 @@ export function UnifiedGraphExplorer({
 
   function applyFilters() {
     if (layer === "coauthorship") {
-      setCoauthorshipFilters(normalizeCoauthorshipFilters(coauthorshipDraft));
+      startGraphTransition(() => {
+        setCoauthorshipFilters(normalizeCoauthorshipFilters(coauthorshipDraft));
+      });
       return;
     }
-    setSemanticFilters(normalizeSemanticFilters(semanticDraft));
+    startGraphTransition(() => {
+      setSemanticFilters(normalizeSemanticFilters(semanticDraft));
+    });
   }
 
   function resetFilters() {
@@ -389,9 +473,13 @@ export function UnifiedGraphExplorer({
         communityId: "",
         maxNodes: defaultNodeLimitValue(),
         minEdgeWeight: "",
+        minDegree: "",
+        largestComponentOnly: false,
       };
       setCoauthorshipDraft(nextDraft);
-      setCoauthorshipFilters(normalizeCoauthorshipFilters(nextDraft));
+      startGraphTransition(() => {
+        setCoauthorshipFilters(normalizeCoauthorshipFilters(nextDraft));
+      });
     } else {
       const nextDraft = {
         publicationId: "",
@@ -400,9 +488,13 @@ export function UnifiedGraphExplorer({
         communityId: "",
         maxNodes: defaultNodeLimitValue(),
         minEdgeWeight: "",
+        minDegree: "",
+        largestComponentOnly: false,
       };
       setSemanticDraft(nextDraft);
-      setSemanticFilters(normalizeSemanticFilters(nextDraft));
+      startGraphTransition(() => {
+        setSemanticFilters(normalizeSemanticFilters(nextDraft));
+      });
     }
     setSelectedNodeId(null);
     setSelectedEdgeId(null);
@@ -439,7 +531,9 @@ export function UnifiedGraphExplorer({
         researcherId: selectedNodeId,
       };
       setCoauthorshipDraft(nextDraft);
-      setCoauthorshipFilters(normalizeCoauthorshipFilters(nextDraft));
+      startGraphTransition(() => {
+        setCoauthorshipFilters(normalizeCoauthorshipFilters(nextDraft));
+      });
       return;
     }
 
@@ -448,13 +542,41 @@ export function UnifiedGraphExplorer({
       publicationId: selectedNodeId,
     };
     setSemanticDraft(nextDraft);
-    setSemanticFilters(normalizeSemanticFilters(nextDraft));
+    startGraphTransition(() => {
+      setSemanticFilters(normalizeSemanticFilters(nextDraft));
+    });
   }
+
+  const isGraphRefreshing =
+    isApplyingFilters || activeGraph.isFetching || activeStatus.isFetching;
+  const isGraphCanvasBusy = isGraphRefreshing || isCanvasRendering;
+  const graphCanvasHint = isGraphRefreshing
+    ? "Refreshing filtered subgraph..."
+    : isCanvasRendering
+      ? isLargeGraph
+        ? `Rendering graph in the browser (${activeNodeCount} nodes, ${activeEdgeCount} edges)...`
+        : "Rendering graph in the browser..."
+      : "Drag, zoom, select.";
 
   const activeHasFilters =
     layer === "coauthorship"
-      ? hasAnyValue(coauthorshipDraft)
-      : hasAnyValue(semanticDraft);
+      ? hasAnyValue({
+          researcherId: coauthorshipDraft.researcherId,
+          organizationId: coauthorshipDraft.organizationId,
+          communityId: coauthorshipDraft.communityId,
+          maxNodes: coauthorshipDraft.maxNodes,
+          minEdgeWeight: coauthorshipDraft.minEdgeWeight,
+          minDegree: coauthorshipDraft.minDegree,
+        }) || hasAnyToggle({ largestComponentOnly: coauthorshipDraft.largestComponentOnly })
+      : hasAnyValue({
+          publicationId: semanticDraft.publicationId,
+          organizationId: semanticDraft.organizationId,
+          publicationYear: semanticDraft.publicationYear,
+          communityId: semanticDraft.communityId,
+          maxNodes: semanticDraft.maxNodes,
+          minEdgeWeight: semanticDraft.minEdgeWeight,
+          minDegree: semanticDraft.minDegree,
+        }) || hasAnyToggle({ largestComponentOnly: semanticDraft.largestComponentOnly });
 
   const selectedNodePayload =
     layer === "coauthorship" && selectedNode && "full_name" in selectedNode
@@ -523,6 +645,11 @@ export function UnifiedGraphExplorer({
           onCenterSelection={centerSelection}
           canCenterSelection={Boolean(selectedNodeId)}
         />
+        {isGraphRefreshing ? (
+          <div className="mt-4 rounded-[1rem] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-zinc-700">
+            Updating the graph view. The backend is preparing a new filtered subgraph and the canvas is being re-rendered.
+          </div>
+        ) : null}
         {layer === "coauthorship" && coauthorshipOrganizationLegend.length > 0 ? (
           <div className="mt-5 space-y-3 border-t border-zinc-100 pt-4">
             <div className="flex items-center justify-between gap-4">
@@ -594,10 +721,23 @@ export function UnifiedGraphExplorer({
               title={layer === "coauthorship" ? "Coauthorship layer" : "Semantic layer"}
               description={`Build ${activeStatus.data?.build_id ?? "n/a"} · ${activeGraph.data.nodes.length} nodes · ${activeGraph.data.edges.length} edges`}
             >
-              <GraphCanvas
-                ref={canvasRef}
-                hint="Drag, zoom, select."
-              />
+              <div className="relative">
+                <GraphCanvas
+                  ref={canvasRef}
+                  hint={graphCanvasHint}
+                />
+                {isGraphCanvasBusy ? (
+                  <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center rounded-[1.5rem] bg-white/65 backdrop-blur-[1px]">
+                    <div className="rounded-full border border-[color:var(--border)] bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.18em] text-zinc-600">
+                      {isGraphRefreshing
+                        ? "Updating graph data"
+                        : isLargeGraph
+                          ? "Rendering large graph"
+                          : "Rendering graph"}
+                    </div>
+                  </div>
+                ) : null}
+              </div>
             </Panel>
 
             <div className="grid gap-4 xl:grid-cols-3">

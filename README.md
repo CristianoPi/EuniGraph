@@ -214,3 +214,13 @@ See [docs/normalization.md](docs/normalization.md) for the current normalization
 See [docs/coauthorship.md](docs/coauthorship.md) for the materialized coauthorship graph pipeline.
 See [docs/embeddings.md](docs/embeddings.md) for the provider-based embeddings layer and Qdrant integration.
 See [docs/semantic-graph.md](docs/semantic-graph.md) for the materialized semantic similarity graph pipeline.
+
+## License, Notices, and Data Use
+
+The project source code is distributed under the MIT License. See [LICENSE](LICENSE).
+
+Third-party software, services, and data-source notes are summarized in
+[NOTICE.md](NOTICE.md).
+
+Data-source, API, Gemini, Qdrant, generated-artifact, and secrets-handling
+guidance is documented in [DATA_AND_API_USAGE.md](DATA_AND_API_USAGE.md).

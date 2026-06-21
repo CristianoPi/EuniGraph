@@ -107,7 +107,7 @@ class PublicationEmbeddingService:
 
     def get_provider_info(self) -> EmbeddingsProviderSummary:
         return EmbeddingsProviderSummary(
-            enabled=self.settings.embeddings_enabled,
+            enabled=self._embeddings_available(),
             provider=self.settings.embeddings_provider,
             model=self.settings.embeddings_model,
             embedding_version=self.settings.embeddings_version,
@@ -121,9 +121,16 @@ class PublicationEmbeddingService:
         )
 
     def get_status(self) -> EmbeddingsStatusSummary:
-        collection_status = self._vector_store_instance().get_collection_status(
-            self.settings.qdrant_collection_publications,
-        )
+        if self._embeddings_available():
+            collection_status = self._vector_store_instance().get_collection_status(
+                self.settings.qdrant_collection_publications,
+            )
+        else:
+            collection_status = {
+                "exists": False,
+                "points_count": 0,
+                "status": None,
+            }
         active_embeddings_count, latest_embedding_updated_at = self.session.execute(
             select(
                 func.count(PublicationEmbeddingModel.id),
@@ -140,7 +147,7 @@ class PublicationEmbeddingService:
             select(func.count(PublicationModel.id)),
         ) or 0
         return EmbeddingsStatusSummary(
-            enabled=self.settings.embeddings_enabled,
+            enabled=self._embeddings_available(),
             provider=self.settings.embeddings_provider,
             model=self.settings.embeddings_model,
             embedding_version=self.settings.embeddings_version,
@@ -324,6 +331,7 @@ class PublicationEmbeddingService:
         return embedding
 
     def reset_embeddings(self) -> EmbeddingsResetSummary:
+        self._ensure_embeddings_enabled()
         collection_deleted = self._vector_store_instance().delete_collection(
             self.settings.qdrant_collection_publications,
         )
@@ -352,11 +360,23 @@ class PublicationEmbeddingService:
         )
 
     def _ensure_embeddings_enabled(self) -> None:
-        if not self.settings.embeddings_enabled:
+        unavailable_detail = self._embeddings_unavailable_detail()
+        if unavailable_detail is not None:
             raise HTTPException(
                 status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-                detail="Embeddings are disabled in the current environment",
+                detail=unavailable_detail,
             )
+
+    def _embeddings_available(self) -> bool:
+        return self._embeddings_unavailable_detail() is None
+
+    def _embeddings_unavailable_detail(self) -> str | None:
+        if not self.settings.embeddings_enabled:
+            return "Embeddings are disabled in the current environment"
+        provider_name = self.settings.embeddings_provider.lower()
+        if provider_name == "gemini" and self.settings.gemini_api_key is None:
+            return "Embeddings are disabled because GEMINI_API_KEY is not configured"
+        return None
 
     def _provider_instance(self) -> EmbeddingProvider:
         if self._provider is not None:
@@ -369,8 +389,8 @@ class PublicationEmbeddingService:
             )
         if self.settings.gemini_api_key is None:
             raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="GEMINI_API_KEY is required when EMBEDDINGS_PROVIDER=gemini",
+                status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                detail="Embeddings are disabled because GEMINI_API_KEY is not configured",
             )
         self._provider = GeminiEmbeddingProvider(
             api_key=self.settings.gemini_api_key,

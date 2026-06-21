@@ -5,6 +5,8 @@ from types import SimpleNamespace
 from typing import Any, cast
 from uuid import uuid4
 
+import pytest
+from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
 from eunigraph.modules.catalog.infrastructure.models import (
@@ -55,6 +57,14 @@ class ResetFakeSession(FakeSession):
         return list(self._values)
 
 
+class StatusFakeSession(FakeSession):
+    def execute(self, _query: object) -> Any:
+        return SimpleNamespace(one=lambda: (0, None))
+
+    def scalar(self, _query: object) -> int:
+        return 0
+
+
 class FakeProvider(EmbeddingProvider):
     def __init__(self, vectors: Sequence[list[float]]) -> None:
         self.vectors = list(vectors)
@@ -77,6 +87,7 @@ class FakeVectorStore:
     def __init__(self) -> None:
         self.upserts: list[dict[str, Any]] = []
         self.deleted_collections: list[str] = []
+        self.status_requests: list[str] = []
 
     def upsert_publication_embedding(
         self,
@@ -96,6 +107,7 @@ class FakeVectorStore:
         )
 
     def get_collection_status(self, collection_name: str) -> dict[str, Any]:
+        self.status_requests.append(collection_name)
         return {
             "exists": True,
             "points_count": len(self.upserts),
@@ -163,6 +175,75 @@ def _settings(content_fields: tuple[str, ...] = ("title", "authors", "abstract")
         qdrant_api_key=None,
         gemini_api_key="test-key",
     )
+
+
+def _settings_without_gemini_key() -> Any:
+    settings = _settings()
+    settings.gemini_api_key = None
+    return settings
+
+
+def test_provider_info_marks_embeddings_disabled_without_gemini_api_key() -> None:
+    service = FakePublicationEmbeddingService(
+        cast(Session, FakeSession()),
+        _settings_without_gemini_key(),
+        [],
+        provider=FakeProvider([[0.1, 0.2]]),
+        vector_store=FakeVectorStore(),
+    )
+
+    provider_info = service.get_provider_info()
+
+    assert provider_info.enabled is False
+    assert provider_info.gemini_api_key_configured is False
+
+
+def test_status_does_not_query_qdrant_without_gemini_api_key() -> None:
+    vector_store = FakeVectorStore()
+    service = FakePublicationEmbeddingService(
+        cast(Session, StatusFakeSession()),
+        _settings_without_gemini_key(),
+        [],
+        provider=FakeProvider([[0.1, 0.2]]),
+        vector_store=vector_store,
+    )
+
+    status_summary = service.get_status()
+
+    assert status_summary.enabled is False
+    assert status_summary.qdrant_collection_exists is False
+    assert status_summary.qdrant_points_count == 0
+    assert status_summary.qdrant_collection_status is None
+    assert vector_store.status_requests == []
+
+
+def test_build_embeddings_returns_service_unavailable_without_gemini_api_key() -> None:
+    publication = PublicationModel(
+        id=uuid4(),
+        title="A semantic map",
+        normalized_title="a semantic map",
+        abstract="Research metadata and graph analysis.",
+    )
+    provider = FakeProvider([[0.1, 0.2]])
+    vector_store = FakeVectorStore()
+    service = FakePublicationEmbeddingService(
+        cast(Session, FakeSession()),
+        _settings_without_gemini_key(),
+        [publication],
+        provider=provider,
+        vector_store=vector_store,
+    )
+
+    with pytest.raises(HTTPException) as exc_info:
+        service.build_embeddings()
+
+    assert exc_info.value.status_code == 503
+    assert (
+        exc_info.value.detail
+        == "Embeddings are disabled because GEMINI_API_KEY is not configured"
+    )
+    assert provider.received_texts == []
+    assert vector_store.upserts == []
 
 
 def test_build_publication_content_uses_configured_fields_and_labels() -> None:
